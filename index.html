@@ -79,6 +79,7 @@ label.consent input{ margin-top:3px; }
 .prefRow .prefCheck{ font-size:1.1rem; color:var(--accent); opacity:0; }
 .prefRow.sel .prefCheck{ opacity:1; }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 <div id="app">
@@ -160,7 +161,8 @@ label.consent input{ margin-top:3px; }
       <div class="statBox"><div class="num" id="donePct"></div></div>
       <div class="badge" id="doneBadge"></div>
       <p class="sub" style="margin-top:14px">下一站，也許就是你的夢想清單。<br><b>航向世界旅遊</b></p>
-      <button class="btn" onclick="shareResult()">📸 分享我的世界足跡</button>
+      <button class="btn" onclick="saveResultImage()" id="saveImgBtn">💾 儲存我的結果圖片</button>
+      <button class="btn secondary" onclick="shareResult()">📸 分享文字</button>
       <button class="btn secondary" onclick="restart()">🔄 再玩一次</button>
     </div>
   </section>
@@ -218,7 +220,7 @@ const TRAVEL_PREFERENCES = [
   { icon:"🗺️", title:"百國秘境", desc:"資深玩家限定，解鎖世界隱藏秘境" },
 ];
 
-const CONSULTANTS = ["曾玟娸","蔡孟谷","呂適仲","林芮杋","耿曼綸","高瑛捷","林梅瑄","胡貽靖","王秋萍","陳姸方","馬筠家","郭厚璋","徐維閔","張書元"];
+const CONSULTANTS = ["曾玟娸","蔡孟谷","呂適仲","林芮杋","耿曼綸","高瑛捷","林梅瑄","胡詒靖","王秋萍","陳姸方","馬筠家","郭厚璋","徐維閔","張書元"];
 const CONSULTANT_OTHER = "其他";
 
 // TODO: 部署後端後，換成實際的 Cloud Function 網址
@@ -450,6 +452,30 @@ function launchConfetti(){
     document.body.appendChild(s);
     setTimeout(()=>s.remove(), 3200);
   }
+}
+
+function saveResultImage(){
+  const card = document.querySelector('#s-done .card');
+  const btn = document.getElementById('saveImgBtn');
+  const btnsToHide = card.querySelectorAll('button');
+  btnsToHide.forEach(b=>b.style.visibility='hidden');
+  btn.textContent = '產生圖片中…';
+
+  const bg = getComputedStyle(document.body).backgroundColor;
+  html2canvas(card, { backgroundColor: bg || '#ffffff', scale: 2, useCORS: true }).then(canvas=>{
+    btnsToHide.forEach(b=>b.style.visibility='');
+    btn.textContent = '💾 儲存我的結果圖片';
+    const link = document.createElement('a');
+    link.download = '我的世界足跡.png';
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }).catch(()=>{
+    btnsToHide.forEach(b=>b.style.visibility='');
+    btn.textContent = '💾 儲存我的結果圖片';
+    alert('圖片產生失敗，請稍後再試，或改用「分享文字」。');
+  });
 }
 
 function shareResult(){
