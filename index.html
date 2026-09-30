@@ -78,6 +78,31 @@ label.consent input{ margin-top:3px; }
 .prefRow .prefDesc{ font-size:.8rem; color:var(--sub); }
 .prefRow .prefCheck{ font-size:1.1rem; color:var(--accent); opacity:0; }
 .prefRow.sel .prefCheck{ opacity:1; }
+
+.resultCard{ background:linear-gradient(180deg,#fff,#fbf7f0); position:relative; overflow:hidden; }
+.resultHeader{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+.resultTitle{ font-size:1.3rem; font-weight:800; line-height:1.25; color:var(--text); text-align:left; }
+.resultSub{ font-size:.78rem; color:var(--sub); margin-top:4px; }
+.resultStamp{
+  border:1.5px dashed var(--accent); border-radius:10px; padding:8px 10px; text-align:center;
+  font-size:.72rem; font-weight:700; color:var(--accent); white-space:nowrap; transform:rotate(3deg);
+}
+.resultStamp span{ display:block; font-size:.58rem; font-weight:600; letter-spacing:.05em; margin-top:2px; opacity:.8; }
+.resultStatRow{ display:flex; gap:10px; }
+.statLabel{ font-size:.72rem; color:var(--sub); margin-top:2px; }
+.miniBox{ background:var(--chip); border-radius:14px; padding:10px 12px; }
+.miniLabel{ font-size:.72rem; color:var(--sub); }
+.miniValue{ font-size:1rem; font-weight:700; color:var(--text); margin-top:2px; }
+.flagGrid{ display:flex; flex-wrap:wrap; gap:8px; }
+.flagChip{
+  display:flex; align-items:center; gap:6px; background:var(--chip); border-radius:20px;
+  padding:7px 12px; font-size:.82rem; color:var(--text);
+}
+.flagChip .flagEmoji{ font-size:1.05rem; }
+.remainBanner{
+  margin-top:16px; text-align:center; font-size:.82rem; font-weight:700; color:#fff;
+  background:linear-gradient(120deg,var(--accent),var(--accent2)); border-radius:12px; padding:10px;
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
@@ -152,15 +177,46 @@ label.consent input{ margin-top:3px; }
   </section>
 
   <section class="screen" id="s-done">
-    <div class="card centerText">
-      <div class="emojiBig">🎉</div>
-      <h2 style="text-align:center">完成！</h2>
-      <p id="doneName" class="sub"></p>
-      <div class="statBox"><div class="num" id="doneCount"></div></div>
-      <p class="sub">解鎖世界</p>
-      <div class="statBox"><div class="num" id="donePct"></div></div>
-      <div class="badge" id="doneBadge"></div>
-      <p class="sub" style="margin-top:14px">下一站，也許就是你的夢想清單。<br><b>航向世界旅遊</b></p>
+    <div class="card resultCard">
+      <div class="resultHeader">
+        <div>
+          <div class="resultTitle">你的世界<br>走了幾%</div>
+          <div class="resultSub">✈️ 航向世界旅遊</div>
+        </div>
+        <div class="resultStamp">我的旅行成績單<span>TRAVEL RESULT</span></div>
+      </div>
+
+      <p id="doneName" class="sub" style="margin:14px 0 2px;"></p>
+
+      <div class="resultStatRow">
+        <div class="statBox" style="flex:1">
+          <div class="num" id="donePct"></div>
+          <div class="statLabel">解鎖世界</div>
+        </div>
+        <div class="statBox" style="flex:1">
+          <div class="num" id="doneCount"></div>
+          <div class="statLabel">走過地方</div>
+        </div>
+      </div>
+
+      <div class="badge" id="doneBadge" style="margin-top:10px"></div>
+
+      <div class="groupLabel" style="margin-top:18px">🌐 我去過的地方</div>
+      <div class="flagGrid" id="doneFlags"></div>
+
+      <div class="resultStatRow" style="margin-top:14px">
+        <div class="miniBox" style="flex:1">
+          <div class="miniLabel">📍 最常去的地方</div>
+          <div class="miniValue" id="doneContinent"></div>
+        </div>
+      </div>
+
+      <div class="groupLabel" style="margin-top:14px">❤️ 我最想體驗的旅行</div>
+      <div class="flagGrid" id="donePrefs"></div>
+
+      <div class="remainBanner" id="doneRemain"></div>
+
+      <p class="sub" style="margin-top:16px">下一站，也許就是你的夢想清單。<br><b>航向世界旅遊</b></p>
       <button class="btn" onclick="saveResultImage()" id="saveImgBtn">💾 儲存我的結果圖片</button>
       <button class="btn secondary" onclick="shareResult()">📸 分享文字</button>
       <button class="btn secondary" onclick="restart()">🔄 再玩一次</button>
@@ -206,6 +262,28 @@ const REGIONS = [
 ];
 const ALL_ITEMS = REGIONS.flatMap(r=>r.groups.flatMap(g=>g.items));
 const TOTAL = ALL_ITEMS.length;
+
+// 國旗 emoji 對照表（用於結果頁展示，非正式國家/地區用相近的象徵符號代替）
+const FLAG_MAP = {
+  "中國大陸":"🇨🇳","俄羅斯":"🇷🇺","日本":"🇯🇵","韓國":"🇰🇷","蒙古":"🇲🇳",
+  "印尼":"🇮🇩","汶萊":"🇧🇳","東帝汶":"🇹🇱","越南":"🇻🇳","寮國":"🇱🇦","柬埔寨":"🇰🇭","馬來西亞":"🇲🇾","泰國":"🇹🇭","緬甸":"🇲🇲","新加坡":"🇸🇬",
+  "印度":"🇮🇳","斯里蘭卡":"🇱🇰","尼泊爾":"🇳🇵","不丹":"🇧🇹","巴基斯坦":"🇵🇰","阿富汗":"🇦🇫",
+  "哈薩克":"🇰🇿","烏茲別克":"🇺🇿","吉爾吉斯":"🇰🇬","塔吉克":"🇹🇯","土庫曼":"🇹🇲",
+  "土耳其":"🇹🇷","伊朗":"🇮🇷","亞美尼亞":"🇦🇲","以色列":"🇮🇱","約旦":"🇯🇴","黎巴嫩":"🇱🇧","阿拉伯聯合大公國":"🇦🇪",
+  "挪威":"🇳🇴","芬蘭":"🇫🇮","瑞典":"🇸🇪","丹麥":"🇩🇰","冰島":"🇮🇸",
+  "葡萄牙":"🇵🇹","西班牙":"🇪🇸",
+  "奧地利":"🇦🇹","捷克":"🇨🇿","克羅埃西亞":"🇭🇷","羅馬尼亞":"🇷🇴","保加利亞":"🇧🇬",
+  "格陵蘭":"🇬🇱","法羅群島":"🇫🇴","賽普勒斯":"🇨🇾",
+  "加拿大":"🇨🇦","美國":"🇺🇸",
+  "墨西哥":"🇲🇽","古巴":"🇨🇺","瓜地馬拉":"🇬🇹","貝里斯":"🇧🇿","薩爾瓦多":"🇸🇻","宏都拉斯":"🇭🇳","尼加拉瓜":"🇳🇮","哥斯大黎加":"🇨🇷","巴拿馬":"🇵🇦",
+  "巴西":"🇧🇷","阿根廷":"🇦🇷","巴拉圭":"🇵🇾","祕魯":"🇵🇪","玻利維亞":"🇧🇴","智利":"🇨🇱","哥倫比亞":"🇨🇴",
+  "阿拉斯加":"🏔️","智利復活節島":"🗿",
+  "埃及":"🇪🇬","摩洛哥":"🇲🇦","肯亞":"🇰🇪","坦尚尼亞":"🇹🇿","衣索比亞":"🇪🇹","納米比亞":"🇳🇦","辛巴威":"🇿🇼","尚比亞":"🇿🇲","波札那":"🇧🇼",
+  "馬達加斯加":"🇲🇬","塞席爾":"🇸🇨","模里西斯":"🇲🇺","留尼旺":"🇷🇪",
+  "澳洲":"🇦🇺","紐西蘭":"🇳🇿",
+  "南極":"🐧","北極":"🧊"
+};
+function flagFor(name){ return FLAG_MAP[name] || "📍"; }
 
 // 合併後的「旅行偏好」問題（原本的夢想目的地＋旅行風格兩題合併為這一題，可複選）
 const TRAVEL_PREFERENCES = [
@@ -420,6 +498,16 @@ async function submitForm(){
       document.getElementById("doneCount").textContent = r.countryCount + " 個地方";
       document.getElementById("donePct").textContent = r.percent + "%";
       document.getElementById("doneBadge").textContent = r.badge;
+      document.getElementById("doneContinent").textContent = mostContinent();
+      document.getElementById("doneFlags").innerHTML = Array.from(selected).map(name=>
+        `<div class="flagChip"><span class="flagEmoji">${flagFor(name)}</span>${name}</div>`
+      ).join("") || `<p class="sub">尚未選擇任何地方</p>`;
+      document.getElementById("donePrefs").innerHTML = Array.from(selectedPreferences).map(title=>{
+        const p = TRAVEL_PREFERENCES.find(x=>x.title===title);
+        return `<div class="flagChip"><span class="flagEmoji">${p?p.icon:"❤️"}</span>${title}</div>`;
+      }).join("");
+      const remain = (100 - parseFloat(r.percent)).toFixed(1);
+      document.getElementById("doneRemain").textContent = `還有 ${remain}% 的世界，等著我去看看！`;
       go("s-done");
       launchConfetti();
     } else {
@@ -458,24 +546,56 @@ function saveResultImage(){
   const card = document.querySelector('#s-done .card');
   const btn = document.getElementById('saveImgBtn');
   const btnsToHide = card.querySelectorAll('button');
+  const restore = () => { btnsToHide.forEach(b=>b.style.visibility=''); btn.textContent = '💾 儲存我的結果圖片'; };
+
+  if (typeof html2canvas === 'undefined') {
+    alert('圖片工具載入失敗，請確認網路連線後，重新整理頁面再試一次。');
+    return;
+  }
+
+  const isIOS = /iP(hone|od|ad)/.test(navigator.userAgent);
+
   btnsToHide.forEach(b=>b.style.visibility='hidden');
   btn.textContent = '產生圖片中…';
 
   const bg = getComputedStyle(document.body).backgroundColor;
-  html2canvas(card, { backgroundColor: bg || '#ffffff', scale: 2, useCORS: true }).then(canvas=>{
-    btnsToHide.forEach(b=>b.style.visibility='');
-    btn.textContent = '💾 儲存我的結果圖片';
-    const link = document.createElement('a');
-    link.download = '我的世界足跡.png';
-    link.href = canvas.toDataURL('image/png');
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  }).catch(()=>{
-    btnsToHide.forEach(b=>b.style.visibility='');
-    btn.textContent = '💾 儲存我的結果圖片';
+  try {
+    html2canvas(card, { backgroundColor: bg || '#ffffff', scale: 2, useCORS: true }).then(canvas=>{
+      restore();
+      if (isIOS) {
+        // iOS Safari 對 <a download> 的支援不穩定，改成開新分頁直接顯示圖片，
+        // 讓使用者用手機最熟悉的方式：長按圖片 → 儲存至照片
+        const dataUrl = canvas.toDataURL('image/png');
+        const win = window.open();
+        if (win) {
+          win.document.write(
+            '<!doctype html><html><head><meta charset="utf-8"><title>長按圖片儲存</title>' +
+            '<meta name="viewport" content="width=device-width, initial-scale=1"></head>' +
+            '<body style="margin:0;background:#0f2740;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:-apple-system,sans-serif;">' +
+            '<p style="color:#fff;font-size:15px;margin:16px;">長按下方圖片，選擇「儲存至照片」</p>' +
+            '<img src="' + dataUrl + '" style="max-width:94%;height:auto;border-radius:16px;">' +
+            '</body></html>'
+          );
+          win.document.close();
+        } else {
+          alert('無法開啟新分頁，請確認瀏覽器沒有封鎖彈出視窗，或改用「分享文字」功能。');
+        }
+      } else {
+        const link = document.createElement('a');
+        link.download = '我的世界足跡.png';
+        link.href = canvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      }
+    }).catch(()=>{
+      restore();
+      alert('圖片產生失敗，請稍後再試，或改用「分享文字」。');
+    });
+  } catch (err) {
+    restore();
     alert('圖片產生失敗，請稍後再試，或改用「分享文字」。');
-  });
+  }
 }
 
 function shareResult(){
