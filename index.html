@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>你的世界走了幾%</title>
+<style>
+:root{
+  --bg1:#0f2740; --bg2:#1e4d6b; --card:#ffffff; --text:#16324a; --sub:#5b7185;
+  --accent:#ff8a3d; --accent2:#2fb6a5; --chip:#eef4f7; --chipSel:#ff8a3d; --chipSelText:#fff;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --card:#1b2a36; --text:#eef4f7; --sub:#9db0bd; --chip:#26394a; }
+}
+:root[data-theme="dark"]{ --card:#1b2a36; --text:#eef4f7; --sub:#9db0bd; --chip:#26394a; }
+html{scroll-padding-top:env(safe-area-inset-top,0px); height:100%;}
+*{box-sizing:border-box;}
+body{
+  margin:0; height:100%; font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif;
+  background:linear-gradient(160deg,var(--bg1),var(--bg2)); color:var(--text);
+  display:flex; justify-content:center;
+}
+#app{ width:100%; max-width:480px; min-height:100%; padding:20px 16px 40px; }
+.screen{ display:none; animation:fade .35s ease; }
+.screen.active{ display:block; }
+@keyframes fade{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;} }
+.card{ background:var(--card); border-radius:20px; padding:22px 18px; box-shadow:0 10px 30px rgba(0,0,0,.25); }
+h1{ font-size:1.5rem; margin:0 0 8px; text-align:center; color:#fff; }
+h2{ font-size:1.15rem; margin:0 0 4px; }
+.sub{ color:var(--sub); font-size:.9rem; margin-bottom:16px; }
+.centerText{ text-align:center; color:#fff; }
+.btn{
+  width:100%; padding:14px; border:none; border-radius:14px; font-size:1rem; font-weight:600;
+  background:var(--accent); color:#fff; margin-top:14px; cursor:pointer;
+}
+.btn:disabled{ opacity:.4; }
+.btn.secondary{ background:var(--chip); color:var(--text); }
+.progressWrap{ margin:14px 0; }
+.progressBar{ height:10px; border-radius:6px; background:var(--chip); overflow:hidden; }
+.progressFill{ height:100%; background:var(--accent2); transition:width .4s ease; }
+.statRow{ display:flex; justify-content:space-between; font-size:.85rem; color:var(--sub); margin-top:4px; }
+.tabs{ display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:10px; }
+.tab{ flex:none; padding:8px 12px; border-radius:20px; background:var(--chip); font-size:.85rem; white-space:nowrap; cursor:pointer; }
+.tab.active{ background:var(--accent); color:#fff; }
+input[type=text], select{
+  width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--chip); background:var(--chip);
+  color:var(--text); font-size:.95rem; margin-bottom:10px;
+}
+.grid{ display:flex; flex-wrap:wrap; gap:8px; }
+.groupLabel{ font-size:.78rem; font-weight:700; color:var(--sub); margin:12px 0 6px; }
+.groupLabel:first-child{ margin-top:0; }
+#countryGrid{ max-height:340px; overflow-y:auto; }
+.chip{
+  padding:9px 14px; border-radius:20px; background:var(--chip); font-size:.88rem; cursor:pointer; user-select:none;
+}
+.chip.sel{ background:var(--chipSel); color:var(--chipSelText); }
+.emojiBig{ font-size:2.6rem; text-align:center; margin-bottom:6px; }
+.badge{ font-size:1.3rem; font-weight:700; text-align:center; margin:6px 0 2px; }
+.statBox{ background:var(--chip); border-radius:14px; padding:12px; text-align:center; margin:8px 0; }
+.statBox .num{ font-size:1.6rem; font-weight:700; color:var(--accent); }
+label.consent{ display:flex; gap:8px; align-items:flex-start; font-size:.82rem; color:var(--sub); margin-top:14px; line-height:1.5; }
+label.consent input{ margin-top:3px; }
+.confetti{ position:fixed; top:-10px; font-size:1.4rem; animation:fall 2.6s linear forwards; pointer-events:none; }
+@keyframes fall{ to{ transform:translateY(110vh) rotate(300deg); opacity:.2; } }
+.footer{ text-align:center; color:rgba(255,255,255,.7); font-size:.75rem; margin-top:18px; }
+
+.prefRow{
+  display:flex; align-items:flex-start; gap:12px; width:100%; text-align:left;
+  padding:14px; border-radius:14px; background:var(--chip); margin-bottom:10px;
+  cursor:pointer; border:2px solid transparent; user-select:none;
+}
+.prefRow.sel{ border-color:var(--accent); background:rgba(255,138,61,.12); }
+.prefRow .prefIcon{ font-size:1.6rem; line-height:1.3; }
+.prefRow .prefBody{ flex:1; }
+.prefRow .prefTitle{ font-weight:700; font-size:.95rem; margin-bottom:2px; }
+.prefRow .prefDesc{ font-size:.8rem; color:var(--sub); }
+.prefRow .prefCheck{ font-size:1.1rem; color:var(--accent); opacity:0; }
+.prefRow.sel .prefCheck{ opacity:1; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <section class="screen active" id="s-start">
+    <h1>你的世界走了幾 %？</h1>
+    <p class="centerText" style="opacity:.85">85 個地方，你去過幾個？</p>
+    <div class="card" style="margin-top:20px; text-align:center;">
+      <div class="emojiBig">🌍</div>
+      <p class="sub">點亮你走過的地方，看看你解鎖了多少個世界，並取得專屬旅行推薦。</p>
+      <button class="btn" onclick="startQuiz()">開始點亮我的世界</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s-q1">
+    <div class="card">
+      <h2>Q1．你走過哪些地方？</h2>
+      <div class="progressWrap">
+        <div class="statRow"><span id="litCount">已點亮 0 / 0 個地方</span><span id="litPct">世界完成度 0.0%</span></div>
+        <div class="progressBar"><div class="progressFill" id="progFill" style="width:0%"></div></div>
+      </div>
+      <input type="text" id="search" placeholder="🔍 搜尋洲別" oninput="renderList()">
+      <div class="tabs" id="tabs"></div>
+      <div id="countryGrid"></div>
+      <button class="btn" onclick="goResults()">✨ 看我的旅行成績</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s-result1">
+    <div class="card centerText" style="color:var(--text)">
+      <div class="emojiBig">🌍</div>
+      <h2 style="text-align:center">我的世界足跡</h2>
+      <p class="sub">你已經踏足</p>
+      <div class="statBox"><div class="num" id="r1count">0 個地方</div></div>
+      <p class="sub">解鎖世界</p>
+      <div class="statBox"><div class="num" id="r1pct">0%</div></div>
+      <p class="sub">最常旅行的洲</p>
+      <div class="statBox"><div class="num" id="r1cont" style="font-size:1.2rem">—</div></div>
+      <div class="badge" id="r1badge">🌱 旅行初心者</div>
+      <button class="btn" onclick="go('s-q2')">下一步</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s-q2">
+    <div class="card">
+      <h2>如果明天就能出發，你最想體驗哪一種旅行？</h2>
+      <p class="sub">可複選</p>
+      <div id="prefList"></div>
+      <button class="btn" id="q2Next" disabled onclick="go('s-contact')">下一步</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s-contact">
+    <div class="card">
+      <h2>🎁 領取我的下一站旅行推薦</h2>
+      <p class="sub">留下聯絡方式，讓航向世界依照你的世界足跡，幫你找到下一個值得出發的地方。</p>
+      <input type="text" id="name" placeholder="姓名">
+      <input type="text" id="phone" placeholder="手機（10 碼數字）" maxlength="10" inputmode="numeric">
+      <select id="consultant" onchange="onConsultantChange()">
+        <option value="">請選擇您的旅遊顧問</option>
+      </select>
+      <input type="text" id="consultantOther" placeholder="請輸入旅遊顧問姓名" style="display:none;" oninput="checkSubmit()">
+      <label class="consent">
+        <input type="checkbox" id="consent" onchange="checkSubmit()">
+        我同意提供上述資料予航向世界旅遊，作為旅遊諮詢、活動通知及行程資訊聯繫使用。
+      </label>
+      <button class="btn" id="submitBtn" disabled onclick="submitForm()">送出</button>
+      <p id="submitError" class="sub" style="color:#e5484d; display:none; margin:10px 0 0;"></p>
+    </div>
+  </section>
+
+  <section class="screen" id="s-done">
+    <div class="card centerText">
+      <div class="emojiBig">🎉</div>
+      <h2 style="text-align:center">完成！</h2>
+      <p id="doneName" class="sub"></p>
+      <div class="statBox"><div class="num" id="doneCount"></div></div>
+      <p class="sub">解鎖世界</p>
+      <div class="statBox"><div class="num" id="donePct"></div></div>
+      <div class="badge" id="doneBadge"></div>
+      <p class="sub" style="margin-top:14px">下一站，也許就是你的夢想清單。<br><b>航向世界旅遊</b></p>
+      <button class="btn" onclick="shareResult()">📸 分享我的世界足跡</button>
+      <button class="btn secondary" onclick="restart()">🔄 再玩一次</button>
+    </div>
+  </section>
+
+  <div class="footer">你的世界走了幾% ｜ 航向世界旅遊</div>
+</div>
+
+<script>
+const REGIONS = [
+  { key:"asia", label:"亞洲", groups:[
+    { key:"eastAsia", label:"東亞", items:["中國大陸","俄羅斯","日本","韓國","蒙古"] },
+    { key:"seAsia", label:"東南亞", items:["印尼","汶萊","東帝汶","越南","寮國","柬埔寨","馬來西亞","泰國","緬甸","新加坡"] },
+    { key:"southAsia", label:"南亞", items:["印度","斯里蘭卡","尼泊爾","不丹","巴基斯坦","阿富汗"] },
+    { key:"centralAsia", label:"中亞", items:["哈薩克","烏茲別克","吉爾吉斯","塔吉克","土庫曼"] },
+    { key:"westAsia", label:"西亞／中東", items:["土耳其","伊朗","亞美尼亞","以色列","約旦","黎巴嫩","阿拉伯聯合大公國"] },
+  ]},
+  { key:"europe", label:"歐洲", groups:[
+    { key:"northEurope", label:"北歐", items:["挪威","芬蘭","瑞典","丹麥","冰島"] },
+    { key:"southEurope", label:"南歐", items:["葡萄牙","西班牙"] },
+    { key:"centralEastEurope", label:"中東歐", items:["奧地利","捷克","克羅埃西亞","羅馬尼亞","保加利亞"] },
+    { key:"otherEurope", label:"其他目的地", items:["格陵蘭","法羅群島","賽普勒斯"] },
+  ]},
+  { key:"americas", label:"美洲", groups:[
+    { key:"northAmerica", label:"北美洲", items:["加拿大","美國"] },
+    { key:"centralCaribbean", label:"中美洲及加勒比海", items:["墨西哥","古巴","瓜地馬拉","貝里斯","薩爾瓦多","宏都拉斯","尼加拉瓜","哥斯大黎加","巴拿馬"] },
+    { key:"southAmerica", label:"南美洲", items:["巴西","阿根廷","巴拉圭","祕魯","玻利維亞","智利","哥倫比亞"] },
+    { key:"otherAmericas", label:"其他目的地", items:["阿拉斯加","智利復活節島"] },
+  ]},
+  { key:"africa", label:"非洲", groups:[
+    { key:"africaAll", label:null, items:["埃及","摩洛哥","肯亞","坦尚尼亞","衣索比亞","納米比亞","辛巴威","尚比亞","波札那"] },
+  ]},
+  { key:"indianOcean", label:"印度洋島", groups:[
+    { key:"indianOceanAll", label:null, items:["馬達加斯加","塞席爾","模里西斯","留尼旺"] },
+  ]},
+  { key:"oceania", label:"大洋洲", groups:[
+    { key:"oceaniaAll", label:null, items:["澳洲","紐西蘭"] },
+  ]},
+  { key:"polar", label:"南極／北極", groups:[
+    { key:"polarAll", label:null, items:["南極","北極"] },
+  ]},
+];
+const ALL_ITEMS = REGIONS.flatMap(r=>r.groups.flatMap(g=>g.items));
+const TOTAL = ALL_ITEMS.length;
+
+// 合併後的「旅行偏好」問題（原本的夢想目的地＋旅行風格兩題合併為這一題，可複選）
+const TRAVEL_PREFERENCES = [
+  { icon:"🌎", title:"拉美風情", desc:"體驗中南美洲的熱情與神秘" },
+  { icon:"🐫", title:"絲路傳奇", desc:"穿越中亞古城，一探絲路文明" },
+  { icon:"🌌", title:"夢幻極光", desc:"追逐北國夜空中的絢麗光影" },
+  { icon:"🏛", title:"世界遺產", desc:"走訪歷史文明與人類珍貴瑰寶" },
+  { icon:"🏔", title:"自然奇境", desc:"探索世界各地的壯闊自然奇觀" },
+  { icon:"🦁", title:"野性探索", desc:"近距離感受野生動物的生命力" },
+  { icon:"🎭", title:"人文漫遊", desc:"感受大千世界的異國文化與風俗" },
+  { icon:"❄️", title:"極地探險", desc:"前進世界盡頭，走訪南北極之美" },
+  { icon:"🗺️", title:"百國秘境", desc:"資深玩家限定，解鎖世界隱藏秘境" },
+];
+
+const CONSULTANTS = ["曾玟娸","蔡孟谷","呂適仲","林芮杋","耿曼綸","高瑛捷","林梅瑄","胡貽靖","王秋萍","陳姸方","馬筠家","郭厚璋","徐維閔","張書元"];
+const CONSULTANT_OTHER = "其他";
+
+// TODO: 部署後端後，換成實際的 Cloud Function 網址
+const API_URL = "https://asia-east1-project-c196e615-65e3-44bb-ada.cloudfunctions.net/submitQuiz";
+
+let selected = new Set();
+let activeTab = "all";
+
+let selectedPreferences = new Set();
+
+let submissionId = null;
+let isSubmitting = false;
+
+function startQuiz(){
+  submissionId = crypto.randomUUID();
+  go('s-q1');
+}
+
+function go(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  window.scrollTo(0,0);
+}
+
+// ---------- Q1：走過的地方 ----------
+function buildTabs(){
+  const tabs = [["all","全部"], ...REGIONS.map(r=>[r.key, r.label])];
+  document.getElementById("tabs").innerHTML = tabs.map(([k,l])=>
+    `<div class="tab ${k===activeTab?'active':''}" onclick="setTab('${k}')">${l}</div>`).join("");
+}
+function setTab(k){ activeTab = k; buildTabs(); renderList(); }
+
+function renderList(){
+  const q = document.getElementById("search").value.trim();
+  const regionsToShow = activeTab === "all" ? REGIONS : REGIONS.filter(r=>r.key===activeTab);
+  let html = "";
+  regionsToShow.forEach(region=>{
+    region.groups.forEach(group=>{
+      let items = group.items;
+      if(q) items = items.filter(name=>name.includes(q));
+      if(items.length===0) return;
+      const label = group.label ? group.label : (activeTab==="all" ? region.label : null);
+      if(label) html += `<div class="groupLabel">${label}</div>`;
+      html += `<div class="grid">` + items.map(name=>
+        `<div class="chip ${selected.has(name)?'sel':''}" onclick="toggleCountry('${name}')">${name}</div>`).join("") + `</div>`;
+    });
+  });
+  document.getElementById("countryGrid").innerHTML = html || `<p class="sub">找不到符合的地點</p>`;
+  updateCounts();
+}
+function toggleCountry(name){
+  if(selected.has(name)) selected.delete(name); else selected.add(name);
+  renderList();
+}
+function updateCounts(){
+  const n = selected.size;
+  const pct = (n/TOTAL*100).toFixed(1);
+  document.getElementById("litCount").textContent = `已點亮 ${n} / ${TOTAL} 個地方`;
+  document.getElementById("litPct").textContent = `世界完成度 ${pct}%`;
+  document.getElementById("progFill").style.width = pct + "%";
+}
+
+function mostContinent(){
+  const count = {};
+  selected.forEach(name=>{
+    for(const region of REGIONS){
+      if(region.groups.some(g=>g.items.includes(name))){
+        count[region.key] = (count[region.key]||0)+1;
+        break;
+      }
+    }
+  });
+  let best=null, bestN=0;
+  for(const k in count){ if(count[k]>bestN){ best=k; bestN=count[k]; } }
+  const region = REGIONS.find(r=>r.key===best);
+  return region ? region.label : "尚未探索";
+}
+function badgeFor(n){
+  if(n<=5) return "🌱 旅行初心者";
+  if(n<=15) return "🧳 世界旅行者";
+  if(n<=30) return "✈️ 地球探險家";
+  if(n<=50) return "🌍 世界冒險家";
+  return "👑 地球收藏家";
+}
+
+function goResults(){
+  const n = selected.size, pct = (n/TOTAL*100).toFixed(1);
+  document.getElementById("r1count").textContent = n + " 個地方";
+  document.getElementById("r1pct").textContent = pct + "%";
+  document.getElementById("r1cont").textContent = mostContinent();
+  document.getElementById("r1badge").textContent = badgeFor(n);
+  go("s-result1");
+}
+
+// ---------- Q2：旅行偏好（合併後，複選） ----------
+function buildPreferences(){
+  document.getElementById("prefList").innerHTML = TRAVEL_PREFERENCES.map(p=>{
+    const sel = selectedPreferences.has(p.title);
+    return `<div class="prefRow ${sel?'sel':''}" onclick="togglePreference('${p.title}')">
+      <div class="prefIcon">${p.icon}</div>
+      <div class="prefBody">
+        <div class="prefTitle">${p.title}</div>
+        <div class="prefDesc">${p.desc}</div>
+      </div>
+      <div class="prefCheck">✓</div>
+    </div>`;
+  }).join("");
+}
+function togglePreference(title){
+  if(selectedPreferences.has(title)) selectedPreferences.delete(title); else selectedPreferences.add(title);
+  buildPreferences();
+  document.getElementById("q2Next").disabled = selectedPreferences.size === 0;
+}
+
+// ---------- 聯絡資訊 ----------
+function buildConsultants(){
+  const sel = document.getElementById("consultant");
+  CONSULTANTS.forEach(name=>{
+    const opt = document.createElement("option");
+    opt.value = name; opt.textContent = name;
+    sel.appendChild(opt);
+  });
+  const otherOpt = document.createElement("option");
+  otherOpt.value = CONSULTANT_OTHER; otherOpt.textContent = "其他";
+  sel.appendChild(otherOpt);
+}
+
+function onConsultantChange(){
+  const isOther = document.getElementById("consultant").value === CONSULTANT_OTHER;
+  const otherInput = document.getElementById("consultantOther");
+  otherInput.style.display = isOther ? "block" : "none";
+  if(!isOther) otherInput.value = "";
+  checkSubmit();
+}
+
+function checkSubmit(){
+  const consentOk = document.getElementById("consent").checked;
+  const consultantVal = document.getElementById("consultant").value;
+  let consultantOk = consultantVal !== "";
+  if(consultantVal === CONSULTANT_OTHER){
+    consultantOk = document.getElementById("consultantOther").value.trim() !== "";
+  }
+  document.getElementById("submitBtn").disabled = !(consentOk && consultantOk);
+}
+
+function showSubmitError(msg){
+  const el = document.getElementById("submitError");
+  el.textContent = msg;
+  el.style.display = "block";
+}
+function clearSubmitError(){
+  const el = document.getElementById("submitError");
+  el.style.display = "none";
+  el.textContent = "";
+}
+
+async function submitForm(){
+  if(isSubmitting) return;
+  if(!submissionId){ submissionId = crypto.randomUUID(); }
+
+  const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const consultantSelect = document.getElementById("consultant").value;
+  const consultant = consultantSelect === CONSULTANT_OTHER
+    ? document.getElementById("consultantOther").value.trim()
+    : consultantSelect;
+  const btn = document.getElementById("submitBtn");
+
+  clearSubmitError();
+  isSubmitting = true;
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = "送出中...";
+
+  const payload = {
+    submission_id: submissionId,
+    name,
+    phone,
+    consultant,
+    countries: Array.from(selected),
+    travelPreferences: Array.from(selectedPreferences),
+    consent: document.getElementById("consent").checked === true
+  };
+
+  try{
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    let json = null;
+    try{ json = await res.json(); }catch(e){}
+
+    if(res.ok && json && json.success){
+      const r = json.result;
+      document.getElementById("doneName").textContent = `${name || "旅人"}，你已經走過`;
+      document.getElementById("doneCount").textContent = r.countryCount + " 個地方";
+      document.getElementById("donePct").textContent = r.percent + "%";
+      document.getElementById("doneBadge").textContent = r.badge;
+      go("s-done");
+      launchConfetti();
+    } else {
+      const code = json && json.error ? json.error : "unknown_error";
+      if(code === "invalid_payload"){
+        showSubmitError("資料格式有誤，請確認姓名／手機（需 10 碼數字）／旅遊顧問是否正確填寫。");
+      } else if(code === "processing_in_progress"){
+        showSubmitError("這筆資料正在處理中，請稍候幾秒後再試一次。");
+      } else {
+        showSubmitError("送出失敗，請檢查網路連線後重試，您的資料仍保留在畫面上。");
+      }
+    }
+  }catch(err){
+    showSubmitError("無法連線到伺服器，請檢查網路後重試，您的資料仍保留在畫面上。");
+  }finally{
+    isSubmitting = false;
+    checkSubmit();
+    btn.textContent = originalLabel;
+  }
+}
+
+function launchConfetti(){
+  const em = ["🎉","✨","🌍","🎊","🧳"];
+  for(let i=0;i<24;i++){
+    const s = document.createElement("div");
+    s.className = "confetti";
+    s.textContent = em[Math.floor(Math.random()*em.length)];
+    s.style.left = Math.random()*100 + "vw";
+    s.style.animationDelay = (Math.random()*0.6)+"s";
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(), 3200);
+  }
+}
+
+function shareResult(){
+  const n = selected.size, pct=(n/TOTAL*100).toFixed(1);
+  const text = `我在「你的世界走了幾%」測驗中走過了 ${n} 個地方，解鎖世界 ${pct}%，稱號是 ${badgeFor(n)}！`;
+  if(navigator.share){ navigator.share({text}).catch(()=>{}); }
+  else { navigator.clipboard?.writeText(text); alert("已複製分享文字：\n" + text); }
+}
+
+function restart(){
+  selected = new Set();
+  selectedPreferences = new Set();
+  submissionId = null; isSubmitting = false;
+  document.getElementById("name").value=""; document.getElementById("phone").value="";
+  document.getElementById("consultant").value = "";
+  document.getElementById("consultantOther").value = "";
+  document.getElementById("consultantOther").style.display = "none";
+  document.getElementById("consent").checked=false;
+  document.getElementById("q2Next").disabled = true;
+  document.getElementById("submitBtn").disabled = true;
+  clearSubmitError();
+  buildTabs(); renderList();
+  buildPreferences();
+  go("s-start");
+}
+
+buildTabs(); renderList();
+buildPreferences();
+buildConsultants();
+</script>
+</body>
+</html>
