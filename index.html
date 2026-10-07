@@ -3,485 +3,442 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>你的世界走了幾%</title>
+<title>旅展活動｜尋找您的下一趟旅程</title>
 <style>
 :root{
   --bg1:#0f2740; --bg2:#1e4d6b; --card:#ffffff; --text:#16324a; --sub:#5b7185;
-  --accent:#ff8a3d; --accent2:#2fb6a5; --chip:#eef4f7; --chipSel:#ff8a3d; --chipSelText:#fff;
-  box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  --accent:#ff8a3d; --accent2:#2fb6a5; --chip:#eef4f7; --line:#dfe8ee;
+  --gold:#c9a24a; --paper:#fbf6ec; --navy:#12304d;
 }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){ --card:#1b2a36; --text:#eef4f7; --sub:#9db0bd; --chip:#26394a; }
-}
-:root[data-theme="dark"]{ --card:#1b2a36; --text:#eef4f7; --sub:#9db0bd; --chip:#26394a; }
-html{scroll-padding-top:env(safe-area-inset-top,0px); height:100%;}
 *{box-sizing:border-box;}
+html{height:100%; -webkit-text-size-adjust:100%;}
 body{
-  margin:0; height:100%; font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif;
-  background:linear-gradient(160deg,var(--bg1),var(--bg2)); color:var(--text);
+  margin:0; min-height:100%; font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif;
+  background:linear-gradient(160deg,var(--bg1),var(--bg2)) fixed; color:var(--text);
   display:flex; justify-content:center;
 }
-#app{ width:100%; max-width:480px; min-height:100%; padding:20px 16px 40px; }
+#app{ width:100%; max-width:480px; min-height:100vh; padding:calc(20px + env(safe-area-inset-top,0px)) 16px calc(40px + env(safe-area-inset-bottom,0px)); }
 .screen{ display:none; animation:fade .35s ease; }
 .screen.active{ display:block; }
 @keyframes fade{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;} }
+
 .card{ background:var(--card); border-radius:20px; padding:22px 18px; box-shadow:0 10px 30px rgba(0,0,0,.25); }
-h1{ font-size:1.5rem; margin:0 0 8px; text-align:center; color:#fff; }
-h2{ font-size:1.15rem; margin:0 0 4px; }
-.sub{ color:var(--sub); font-size:.9rem; margin-bottom:16px; }
+h1{ font-size:1.55rem; line-height:1.35; margin:0 0 8px; text-align:center; color:#fff; }
+h2{ font-size:1.12rem; line-height:1.45; margin:0 0 4px; }
+.eyebrow{ text-align:center; color:rgba(255,255,255,.75); font-size:.8rem; letter-spacing:.2em; margin-bottom:10px; }
+.sub{ color:var(--sub); font-size:.88rem; line-height:1.6; margin:0 0 14px; }
 .centerText{ text-align:center; color:#fff; }
+.emojiBig{ font-size:2.6rem; text-align:center; margin-bottom:6px; }
+.step{ font-size:.75rem; font-weight:700; color:var(--accent); letter-spacing:.08em; margin-bottom:6px; }
+
 .btn{
   width:100%; padding:14px; border:none; border-radius:14px; font-size:1rem; font-weight:600;
-  background:var(--accent); color:#fff; margin-top:14px; cursor:pointer;
+  background:var(--accent); color:#fff; margin-top:14px; cursor:pointer; font-family:inherit;
 }
-.btn:disabled{ opacity:.4; }
+.btn:disabled{ opacity:.4; cursor:not-allowed; }
 .btn.secondary{ background:var(--chip); color:var(--text); }
-.progressWrap{ margin:14px 0; }
-.progressBar{ height:10px; border-radius:6px; background:var(--chip); overflow:hidden; }
-.progressFill{ height:100%; background:var(--accent2); transition:width .4s ease; }
-.statRow{ display:flex; justify-content:space-between; font-size:.85rem; color:var(--sub); margin-top:4px; }
-.tabs{ display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:10px; }
-.tab{ flex:none; padding:8px 12px; border-radius:20px; background:var(--chip); font-size:.85rem; white-space:nowrap; cursor:pointer; }
-.tab.active{ background:var(--accent); color:#fff; }
-input[type=text], select{
-  width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--chip); background:var(--chip);
-  color:var(--text); font-size:.95rem; margin-bottom:10px;
+.btnRow{ display:flex; gap:10px; }
+.btnRow .btn{ flex:1; }
+.btnRow .btn.back{ flex:0 0 32%; }
+
+/* 第一題：洲別 */
+.contGrid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px; }
+.contItem{
+  display:flex; align-items:center; gap:10px; padding:13px 12px; border-radius:14px; background:var(--chip);
+  border:2px solid transparent; cursor:pointer; user-select:none; font-weight:600; font-size:.95rem;
+  -webkit-tap-highlight-color:transparent;
 }
-.grid{ display:flex; flex-wrap:wrap; gap:8px; }
-.groupLabel{ font-size:.78rem; font-weight:700; color:var(--sub); margin:12px 0 6px; }
-.groupLabel:first-child{ margin-top:0; }
-#countryGrid{ max-height:340px; overflow-y:auto; }
-.chip{
-  padding:9px 14px; border-radius:20px; background:var(--chip); font-size:.88rem; cursor:pointer; user-select:none;
+.contItem .ico{ font-size:1.5rem; }
+.contItem.sel{ border-color:var(--accent); background:rgba(255,138,61,.12); }
+.contItem:last-child:nth-child(odd){ grid-column:1 / -1; }
+
+/* 第二、三題：靠左排列、附小圖 */
+.optRow{
+  display:flex; align-items:center; gap:12px; width:100%; text-align:left;
+  padding:10px 12px 10px 10px; border-radius:14px; background:var(--chip); margin-bottom:10px;
+  cursor:pointer; border:2px solid transparent; user-select:none; -webkit-tap-highlight-color:transparent;
 }
-.chip.sel{ background:var(--chipSel); color:var(--chipSelText); }
-.emojiBig{ font-size:2.6rem; text-align:center; margin-bottom:6px; }
-.badge{ font-size:1.3rem; font-weight:700; text-align:center; margin:6px 0 2px; }
-.statBox{ background:var(--chip); border-radius:14px; padding:12px; text-align:center; margin:8px 0; }
-.statBox .num{ font-size:1.6rem; font-weight:700; color:var(--accent); }
-label.consent{ display:flex; gap:8px; align-items:flex-start; font-size:.82rem; color:var(--sub); margin-top:14px; line-height:1.5; }
-label.consent input{ margin-top:3px; }
-.confetti{ position:fixed; top:-10px; font-size:1.4rem; animation:fall 2.6s linear forwards; pointer-events:none; }
-@keyframes fall{ to{ transform:translateY(110vh) rotate(300deg); opacity:.2; } }
+.optRow.sel{ border-color:var(--accent); background:rgba(255,138,61,.12); }
+.optRow .thumb{
+  flex:0 0 58px; width:58px; height:58px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+  font-size:1.9rem; background-size:cover; background-position:center; overflow:hidden;
+}
+.optRow .optText{ flex:1; font-size:.9rem; line-height:1.5; font-weight:500; text-align:left; }
+.optRow .optText b{ display:block; font-size:.95rem; }
+.optRow .tick{
+  flex:0 0 22px; width:22px; height:22px; border-radius:50%; border:2px solid #c3d0d9; display:flex; align-items:center;
+  justify-content:center; font-size:.75rem; color:#fff;
+}
+.optRow.sel .tick{ background:var(--accent); border-color:var(--accent); }
+
+/* 第四題：表單 */
+label.field{ display:block; font-size:.8rem; font-weight:700; color:var(--sub); margin:12px 0 5px; }
+input[type=text], input[type=tel], select{
+  width:100%; padding:13px 14px; border-radius:12px; border:1.5px solid var(--chip); background:var(--chip);
+  color:var(--text); font-size:1rem; font-family:inherit; appearance:none; -webkit-appearance:none;
+}
+input:focus, select:focus{ outline:none; border-color:var(--accent); background:#fff; }
+select{ background-image:linear-gradient(45deg,transparent 50%,var(--sub) 50%),linear-gradient(135deg,var(--sub) 50%,transparent 50%);
+  background-position:calc(100% - 20px) 50%,calc(100% - 14px) 50%; background-size:6px 6px; background-repeat:no-repeat; padding-right:36px; }
+.hint{ font-size:.75rem; color:var(--sub); margin-top:4px; }
+.hint.bad{ color:#e5484d; }
+label.consent{ display:flex; gap:10px; align-items:flex-start; font-size:.8rem; color:var(--text); margin-top:18px; line-height:1.6; cursor:pointer; }
+label.consent input{ width:20px; height:20px; margin:2px 0 0; flex:0 0 20px; accent-color:var(--accent); }
+.errorMsg{ color:#e5484d; font-size:.85rem; margin:10px 0 0; display:none; line-height:1.5; }
+
+/* 結尾：機票 */
+.ticketWrap{ background:#efe7d6; padding:14px; border-radius:20px; }
+.ticket{ background:var(--paper); border-radius:16px; overflow:hidden; position:relative; box-shadow:0 6px 18px rgba(18,48,77,.18); color:var(--navy); }
+.tkTop{ background:var(--navy); color:#fff; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; }
+.tkBrand{ font-weight:800; font-size:.95rem; letter-spacing:.04em; }
+.tkBrand small{ display:block; font-weight:500; font-size:.6rem; letter-spacing:.2em; opacity:.7; margin-top:1px; }
+.tkType{ text-align:right; font-size:.62rem; letter-spacing:.18em; color:var(--gold); font-weight:700; }
+.tkType b{ display:block; color:#fff; font-size:.9rem; letter-spacing:.08em; }
+.tkHero{ height:150px; position:relative; display:flex; align-items:flex-end; padding:14px 16px; background-size:cover; background-position:center; overflow:hidden; }
+.tkHero .big{ position:absolute; right:14px; top:6px; font-size:5.2rem; line-height:1; opacity:.95; }
+.tkHero .c1, .tkHero .c2{ position:absolute; border-radius:50%; background:rgba(255,255,255,.16); }
+.tkHero .c1{ width:150px; height:150px; left:-40px; top:-60px; }
+.tkHero .c2{ width:110px; height:110px; right:60px; bottom:-60px; }
+.tkHero .next{ position:relative; color:#fff; text-shadow:0 1px 6px rgba(0,0,0,.35); }
+.tkHero .next small{ display:block; font-size:.62rem; letter-spacing:.3em; opacity:.9; }
+.tkHero .next b{ font-size:1.3rem; line-height:1.3; display:block; margin-top:2px; }
+.tkRoute{ display:flex; align-items:center; justify-content:space-between; padding:16px 18px 6px; }
+.tkRoute .city{ text-align:center; }
+.tkRoute .code{ font-family:Georgia,"Times New Roman",serif; font-size:2.1rem; font-weight:700; letter-spacing:.04em; line-height:1; }
+.tkRoute .name{ font-size:.74rem; color:var(--sub); margin-top:5px; }
+.tkRoute .plane{ flex:1; text-align:center; color:var(--gold); font-size:1.3rem; position:relative; }
+.tkRoute .plane:before{ content:""; position:absolute; left:6px; right:6px; top:50%; border-top:1.5px dashed var(--gold); z-index:0; }
+.tkRoute .plane span{ position:relative; background:var(--paper); padding:0 6px; z-index:1; }
+.tkGrid{ display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:12px 10px; padding:12px 18px 16px; }
+.tkGrid .f small{ display:block; font-size:.58rem; letter-spacing:.14em; color:var(--sub); margin-bottom:2px; }
+.tkGrid .f b{ font-size:.95rem; font-weight:700; word-break:break-all; }
+.tkGrid .wide{ grid-column:span 2; }
+.tkPerf{ border-top:2px dashed #cdbf9f; margin:0 12px; position:relative; }
+.tkPerf:before, .tkPerf:after{ content:""; position:absolute; top:-11px; width:20px; height:20px; border-radius:50%; background:#efe7d6; }
+.tkPerf:before{ left:-22px; } .tkPerf:after{ right:-22px; }
+.tkStub{ padding:14px 18px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.barcode{ display:flex; align-items:stretch; height:44px; gap:0; flex:1; overflow:hidden; }
+.barcode i{ display:block; background:var(--navy); height:100%; }
+.tkStub .slogan{ font-size:.62rem; letter-spacing:.14em; color:var(--sub); text-align:right; line-height:1.7; white-space:nowrap; }
+.tkStub .slogan b{ display:block; color:var(--navy); font-size:.8rem; letter-spacing:.06em; }
 .footer{ text-align:center; color:rgba(255,255,255,.7); font-size:.75rem; margin-top:18px; }
-
-.prefRow{
-  display:flex; align-items:flex-start; gap:12px; width:100%; text-align:left;
-  padding:14px; border-radius:14px; background:var(--chip); margin-bottom:10px;
-  cursor:pointer; border:2px solid transparent; user-select:none;
-}
-.prefRow.sel{ border-color:var(--accent); background:rgba(255,138,61,.12); }
-.prefRow .prefIcon{ font-size:1.6rem; line-height:1.3; }
-.prefRow .prefBody{ flex:1; }
-.prefRow .prefTitle{ font-weight:700; font-size:.95rem; margin-bottom:2px; }
-.prefRow .prefDesc{ font-size:.8rem; color:var(--sub); }
-.prefRow .prefCheck{ font-size:1.1rem; color:var(--accent); opacity:0; }
-.prefRow.sel .prefCheck{ opacity:1; }
-
-.resultCard{ background:linear-gradient(180deg,#fff,#fbf7f0); position:relative; overflow:hidden; }
-.resultHeader{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
-.resultTitle{ font-size:1.3rem; font-weight:800; line-height:1.25; color:var(--text); text-align:left; }
-.resultSub{ font-size:.78rem; color:var(--sub); margin-top:4px; }
-.resultStamp{
-  border:1.5px dashed var(--accent); border-radius:10px; padding:8px 10px; text-align:center;
-  font-size:.72rem; font-weight:700; color:var(--accent); white-space:nowrap; transform:rotate(3deg);
-}
-.resultStamp span{ display:block; font-size:.58rem; font-weight:600; letter-spacing:.05em; margin-top:2px; opacity:.8; }
-.resultStatRow{ display:flex; gap:10px; }
-.statLabel{ font-size:.72rem; color:var(--sub); margin-top:2px; }
-.miniBox{ background:var(--chip); border-radius:14px; padding:10px 12px; }
-.miniLabel{ font-size:.72rem; color:var(--sub); }
-.miniValue{ font-size:1rem; font-weight:700; color:var(--text); margin-top:2px; }
-.flagGrid{ display:flex; flex-wrap:wrap; gap:8px; }
-.flagChip{
-  display:flex; align-items:center; gap:6px; background:var(--chip); border-radius:20px;
-  padding:7px 12px; font-size:.82rem; color:var(--text);
-}
-.flagChip .flagEmoji{ font-size:1.05rem; }
-.remainBanner{
-  margin-top:16px; text-align:center; font-size:.82rem; font-weight:700; color:#fff;
-  background:linear-gradient(120deg,var(--accent),var(--accent2)); border-radius:12px; padding:10px;
-}
+.confetti{ position:fixed; top:-10px; font-size:1.4rem; animation:fall 2.6s linear forwards; pointer-events:none; z-index:20; }
+@keyframes fall{ to{ transform:translateY(110vh) rotate(300deg); opacity:.2; } }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 <div id="app">
 
+  <!-- 開場 -->
   <section class="screen active" id="s-start">
-    <h1>你的世界走了幾 %？</h1>
-    <p class="centerText" style="opacity:.85">85 個地方，你去過幾個？</p>
-    <div class="card" style="margin-top:20px; text-align:center;">
-      <div class="emojiBig">🌍</div>
-      <p class="sub">點亮你走過的地方，看看你解鎖了多少個世界，並取得專屬旅行推薦。</p>
-      <button class="btn" onclick="startQuiz()">開始點亮我的世界</button>
+    <div class="eyebrow">旅展活動</div>
+    <h1>尋找您的下一趟旅程<br>告訴我你要去哪裡？</h1>
+    <div class="card" style="margin-top:22px; text-align:center;">
+      <div class="emojiBig">🧭</div>
+      <p class="sub">回答 3 個小問題，留下聯絡方式，<br>領取專屬於您的下一站旅行推薦與登機證。</p>
+      <button class="btn" onclick="startQuiz()">開始出發</button>
     </div>
   </section>
 
+  <!-- 題目一 -->
   <section class="screen" id="s-q1">
     <div class="card">
-      <h2>Q1．你走過哪些地方？</h2>
-      <div class="progressWrap">
-        <div class="statRow"><span id="litCount">已點亮 0 / 0 個地方</span><span id="litPct">世界完成度 0.0%</span></div>
-        <div class="progressBar"><div class="progressFill" id="progFill" style="width:0%"></div></div>
-      </div>
-      <input type="text" id="search" placeholder="🔍 搜尋洲別" oninput="renderList()">
-      <div class="tabs" id="tabs"></div>
-      <div id="countryGrid"></div>
-      <button class="btn" onclick="goResults()">✨ 看我的旅行成績</button>
+      <div class="step">QUESTION 1 / 4</div>
+      <h2>哪些洲別有您的足跡呢？</h2>
+      <p class="sub">可複選；還沒出發過也沒關係，直接下一步</p>
+      <div class="contGrid" id="contGrid"></div>
+      <button class="btn" onclick="go('s-q2')">下一題</button>
     </div>
   </section>
 
-  <section class="screen" id="s-result1">
-    <div class="card centerText" style="color:var(--text)">
-      <div class="emojiBig">🌍</div>
-      <h2 style="text-align:center">我的世界足跡</h2>
-      <p class="sub">你已經踏足</p>
-      <div class="statBox"><div class="num" id="r1count">0 個地方</div></div>
-      <p class="sub">解鎖世界</p>
-      <div class="statBox"><div class="num" id="r1pct">0%</div></div>
-      <p class="sub">最常旅行的洲</p>
-      <div class="statBox"><div class="num" id="r1cont" style="font-size:1.2rem">—</div></div>
-      <div class="badge" id="r1badge">🌱 旅行初心者</div>
-      <button class="btn" onclick="go('s-q2')">下一步</button>
-    </div>
-  </section>
-
+  <!-- 題目二 -->
   <section class="screen" id="s-q2">
     <div class="card">
-      <h2>如果明天就能出發，你最想體驗哪一種旅行？</h2>
+      <div class="step">QUESTION 2 / 4</div>
+      <h2>下面哪些場景令您怦然心動？？？</h2>
       <p class="sub">可複選</p>
-      <div id="prefList"></div>
-      <button class="btn" id="q2Next" disabled onclick="go('s-contact')">下一步</button>
+      <div id="sceneList"></div>
+      <div class="btnRow">
+        <button class="btn secondary back" onclick="go('s-q1')">上一題</button>
+        <button class="btn" id="q2Next" disabled onclick="go('s-q3')">下一題</button>
+      </div>
     </div>
   </section>
 
+  <!-- 題目三 -->
+  <section class="screen" id="s-q3">
+    <div class="card">
+      <div class="step">QUESTION 3 / 4</div>
+      <h2>如果明天就有機會出發，您會想去哪裡？</h2>
+      <p class="sub">可複選</p>
+      <div id="destList"></div>
+      <div class="btnRow">
+        <button class="btn secondary back" onclick="go('s-q2')">上一題</button>
+        <button class="btn" id="q3Next" disabled onclick="go('s-contact')">下一題</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 題目四 -->
   <section class="screen" id="s-contact">
     <div class="card">
+      <div class="step">QUESTION 4 / 4</div>
       <h2>🎁 領取我的下一站旅行推薦</h2>
-      <p class="sub">留下聯絡方式，讓航向世界依照你的世界足跡，幫你找到下一個值得出發的地方。</p>
-      <input type="text" id="name" placeholder="姓名">
-      <input type="text" id="phone" placeholder="手機（10 碼數字）" maxlength="10" inputmode="numeric">
-      <select id="consultant" onchange="onConsultantChange()">
+      <p class="sub">留下聯絡方式，<br>讓航向世界依照您的足跡，<br>幫您找到下一個值得出發的地方。</p>
+
+      <label class="field" for="name">姓名</label>
+      <input type="text" id="name" placeholder="請輸入姓名" maxlength="50" autocomplete="name" oninput="checkSubmit()">
+
+      <label class="field" for="phone">手機</label>
+      <input type="tel" id="phone" placeholder="請輸入 10 碼手機號碼" inputmode="numeric" autocomplete="tel" oninput="onPhoneInput()">
+      <div class="hint" id="phoneHint">格式：10 碼數字，例如 0912345678</div>
+
+      <label class="field" for="consultant">旅遊顧問</label>
+      <select id="consultant" onchange="checkSubmit()">
         <option value="">請選擇您的旅遊顧問</option>
       </select>
-      <input type="text" id="consultantOther" placeholder="請輸入旅遊顧問姓名" style="display:none;" oninput="checkSubmit()">
+
       <label class="consent">
         <input type="checkbox" id="consent" onchange="checkSubmit()">
-        我同意提供上述資料予航向世界旅遊，作為旅遊諮詢、活動通知及行程資訊聯繫使用。
+        <span>我同意提供上述資料予航向世界旅遊，<br>作為旅遊諮詢、活動通知及行程資訊聯繫使用。</span>
       </label>
-      <button class="btn" id="submitBtn" disabled onclick="submitForm()">送出</button>
-      <p id="submitError" class="sub" style="color:#e5484d; display:none; margin:10px 0 0;"></p>
+
+      <div class="btnRow">
+        <button class="btn secondary back" onclick="go('s-q3')">上一題</button>
+        <button class="btn" id="submitBtn" disabled onclick="submitForm()">送出</button>
+      </div>
+      <p id="submitError" class="errorMsg"></p>
     </div>
   </section>
 
+  <!-- 結尾：登機證 -->
   <section class="screen" id="s-done">
-    <div class="card resultCard">
-      <div class="resultHeader">
-        <div>
-          <div class="resultTitle">你的世界<br>走了幾%</div>
-          <div class="resultSub">✈️ 航向世界旅遊</div>
-        </div>
-        <div class="resultStamp">我的旅行成績單<span>TRAVEL RESULT</span></div>
-      </div>
-
-      <p id="doneName" class="sub" style="margin:14px 0 2px;"></p>
-
-      <div class="resultStatRow">
-        <div class="statBox" style="flex:1">
-          <div class="num" id="donePct"></div>
-          <div class="statLabel">解鎖世界</div>
-        </div>
-        <div class="statBox" style="flex:1">
-          <div class="num" id="doneCount"></div>
-          <div class="statLabel">走過地方</div>
-        </div>
-      </div>
-
-      <div class="badge" id="doneBadge" style="margin-top:10px"></div>
-
-      <div class="groupLabel" style="margin-top:18px">🌐 我去過的地方</div>
-      <div class="flagGrid" id="doneFlags"></div>
-
-      <div class="resultStatRow" style="margin-top:14px">
-        <div class="miniBox" style="flex:1">
-          <div class="miniLabel">📍 最常去的地方</div>
-          <div class="miniValue" id="doneContinent"></div>
-        </div>
-      </div>
-
-      <div class="groupLabel" style="margin-top:14px">❤️ 我最想體驗的旅行</div>
-      <div class="flagGrid" id="donePrefs"></div>
-
-      <div class="remainBanner" id="doneRemain"></div>
-
-      <p class="sub" style="margin-top:16px">下一站，也許就是你的夢想清單。<br><b>航向世界旅遊</b></p>
-      <button class="btn" onclick="saveResultImage()" id="saveImgBtn">💾 儲存我的結果圖片</button>
-      <button class="btn secondary" onclick="shareResult()">📸 分享文字</button>
-      <button class="btn secondary" onclick="restart()">🔄 再玩一次</button>
+    <div class="centerText" style="margin-bottom:14px;">
+      <div class="eyebrow" style="margin-bottom:4px;">BON VOYAGE</div>
+      <h1 style="font-size:1.3rem;">您的下一站已經出發 ✈️</h1>
     </div>
+
+    <div class="ticketWrap" id="ticketWrap">
+      <div class="ticket">
+        <div class="tkTop">
+          <div class="tkBrand">航向世界旅遊<small>WORLD VOYAGE TRAVEL</small></div>
+          <div class="tkType">登機證<b>BOARDING PASS</b></div>
+        </div>
+        <div class="tkHero" id="tkHero">
+          <div class="c1"></div><div class="c2"></div>
+          <div class="big" id="tkEmoji"></div>
+          <div class="next"><small>NEXT STOP · 下一站</small><b id="tkDest"></b></div>
+        </div>
+        <div class="tkRoute">
+          <div class="city"><div class="code">TPE</div><div class="name">台北</div></div>
+          <div class="plane"><span>✈</span></div>
+          <div class="city"><div class="code" id="tkCode"></div><div class="name" id="tkCity"></div></div>
+        </div>
+        <div class="tkGrid">
+          <div class="f wide"><small>旅客 PASSENGER</small><b id="tkName"></b></div>
+          <div class="f"><small>日期 DATE</small><b id="tkDate"></b></div>
+          <div class="f"><small>航班 FLIGHT</small><b id="tkFlight"></b></div>
+          <div class="f"><small>登機門 GATE</small><b id="tkGate"></b></div>
+          <div class="f"><small>座位 SEAT</small><b id="tkSeat"></b></div>
+          <div class="f wide"><small>旅遊顧問 CONSULTANT</small><b id="tkConsultant"></b></div>
+        </div>
+        <div class="tkPerf"></div>
+        <div class="tkStub">
+          <div class="barcode" id="tkBarcode"></div>
+          <div class="slogan"><b>祝您旅途愉快</b>HAVE A NICE TRIP</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn" id="saveImgBtn" onclick="saveTicketImage()">💾 儲存我的登機證</button>
+    <button class="btn secondary" onclick="restart()">🔄 再玩一次</button>
   </section>
 
-  <div class="footer">你的世界走了幾% ｜ 航向世界旅遊</div>
+  <div class="footer">旅展活動 ｜ 航向世界旅遊</div>
 </div>
 
 <script>
-const REGIONS = [
-  { key:"asia", label:"亞洲", groups:[
-    { key:"eastAsia", label:"東亞", items:["中國大陸","俄羅斯","日本","韓國","蒙古"] },
-    { key:"seAsia", label:"東南亞", items:["印尼","汶萊","東帝汶","越南","寮國","柬埔寨","馬來西亞","泰國","緬甸","新加坡"] },
-    { key:"southAsia", label:"南亞", items:["印度","斯里蘭卡","尼泊爾","不丹","巴基斯坦","阿富汗"] },
-    { key:"centralAsia", label:"中亞", items:["哈薩克","烏茲別克","吉爾吉斯","塔吉克","土庫曼"] },
-    { key:"westAsia", label:"西亞／中東", items:["土耳其","伊朗","亞美尼亞","以色列","約旦","黎巴嫩","阿拉伯聯合大公國"] },
-  ]},
-  { key:"europe", label:"歐洲", groups:[
-    { key:"northEurope", label:"北歐", items:["挪威","芬蘭","瑞典","丹麥","冰島"] },
-    { key:"southEurope", label:"南歐", items:["葡萄牙","西班牙"] },
-    { key:"centralEastEurope", label:"中東歐", items:["奧地利","捷克","克羅埃西亞","羅馬尼亞","保加利亞"] },
-    { key:"otherEurope", label:"其他目的地", items:["格陵蘭","法羅群島","賽普勒斯"] },
-  ]},
-  { key:"americas", label:"美洲", groups:[
-    { key:"northAmerica", label:"北美洲", items:["加拿大","美國"] },
-    { key:"centralCaribbean", label:"中美洲及加勒比海", items:["墨西哥","古巴","瓜地馬拉","貝里斯","薩爾瓦多","宏都拉斯","尼加拉瓜","哥斯大黎加","巴拿馬"] },
-    { key:"southAmerica", label:"南美洲", items:["巴西","阿根廷","巴拉圭","祕魯","玻利維亞","智利","哥倫比亞"] },
-    { key:"otherAmericas", label:"其他目的地", items:["阿拉斯加","智利復活節島"] },
-  ]},
-  { key:"africa", label:"非洲", groups:[
-    { key:"africaAll", label:null, items:["埃及","摩洛哥","肯亞","坦尚尼亞","衣索比亞","納米比亞","辛巴威","尚比亞","波札那"] },
-  ]},
-  { key:"indianOcean", label:"印度洋島", groups:[
-    { key:"indianOceanAll", label:null, items:["馬達加斯加","塞席爾","模里西斯","留尼旺"] },
-  ]},
-  { key:"oceania", label:"大洋洲", groups:[
-    { key:"oceaniaAll", label:null, items:["澳洲","紐西蘭"] },
-  ]},
-  { key:"polar", label:"南極／北極", groups:[
-    { key:"polarAll", label:null, items:["南極","北極"] },
-  ]},
-];
-const ALL_ITEMS = REGIONS.flatMap(r=>r.groups.flatMap(g=>g.items));
-const TOTAL = ALL_ITEMS.length;
-
-// 國旗 emoji 對照表（用於結果頁展示，非正式國家/地區用相近的象徵符號代替）
-const FLAG_MAP = {
-  "中國大陸":"🇨🇳","俄羅斯":"🇷🇺","日本":"🇯🇵","韓國":"🇰🇷","蒙古":"🇲🇳",
-  "印尼":"🇮🇩","汶萊":"🇧🇳","東帝汶":"🇹🇱","越南":"🇻🇳","寮國":"🇱🇦","柬埔寨":"🇰🇭","馬來西亞":"🇲🇾","泰國":"🇹🇭","緬甸":"🇲🇲","新加坡":"🇸🇬",
-  "印度":"🇮🇳","斯里蘭卡":"🇱🇰","尼泊爾":"🇳🇵","不丹":"🇧🇹","巴基斯坦":"🇵🇰","阿富汗":"🇦🇫",
-  "哈薩克":"🇰🇿","烏茲別克":"🇺🇿","吉爾吉斯":"🇰🇬","塔吉克":"🇹🇯","土庫曼":"🇹🇲",
-  "土耳其":"🇹🇷","伊朗":"🇮🇷","亞美尼亞":"🇦🇲","以色列":"🇮🇱","約旦":"🇯🇴","黎巴嫩":"🇱🇧","阿拉伯聯合大公國":"🇦🇪",
-  "挪威":"🇳🇴","芬蘭":"🇫🇮","瑞典":"🇸🇪","丹麥":"🇩🇰","冰島":"🇮🇸",
-  "葡萄牙":"🇵🇹","西班牙":"🇪🇸",
-  "奧地利":"🇦🇹","捷克":"🇨🇿","克羅埃西亞":"🇭🇷","羅馬尼亞":"🇷🇴","保加利亞":"🇧🇬",
-  "格陵蘭":"🇬🇱","法羅群島":"🇫🇴","賽普勒斯":"🇨🇾",
-  "加拿大":"🇨🇦","美國":"🇺🇸",
-  "墨西哥":"🇲🇽","古巴":"🇨🇺","瓜地馬拉":"🇬🇹","貝里斯":"🇧🇿","薩爾瓦多":"🇸🇻","宏都拉斯":"🇭🇳","尼加拉瓜":"🇳🇮","哥斯大黎加":"🇨🇷","巴拿馬":"🇵🇦",
-  "巴西":"🇧🇷","阿根廷":"🇦🇷","巴拉圭":"🇵🇾","祕魯":"🇵🇪","玻利維亞":"🇧🇴","智利":"🇨🇱","哥倫比亞":"🇨🇴",
-  "阿拉斯加":"🏔️","智利復活節島":"🗿",
-  "埃及":"🇪🇬","摩洛哥":"🇲🇦","肯亞":"🇰🇪","坦尚尼亞":"🇹🇿","衣索比亞":"🇪🇹","納米比亞":"🇳🇦","辛巴威":"🇿🇼","尚比亞":"🇿🇲","波札那":"🇧🇼",
-  "馬達加斯加":"🇲🇬","塞席爾":"🇸🇨","模里西斯":"🇲🇺","留尼旺":"🇷🇪",
-  "澳洲":"🇦🇺","紐西蘭":"🇳🇿",
-  "南極":"🐧","北極":"🧊"
-};
-function flagFor(name){ return FLAG_MAP[name] || "📍"; }
-
-// 合併後的「旅行偏好」問題（原本的夢想目的地＋旅行風格兩題合併為這一題，可複選）
-const TRAVEL_PREFERENCES = [
-  { icon:"🌎", title:"拉美風情", desc:"體驗中南美洲的熱情與神秘" },
-  { icon:"🐫", title:"絲路傳奇", desc:"穿越中亞古城，一探絲路文明" },
-  { icon:"🌌", title:"夢幻極光", desc:"追逐北國夜空中的絢麗光影" },
-  { icon:"🏛", title:"世界遺產", desc:"走訪歷史文明與人類珍貴瑰寶" },
-  { icon:"🏔", title:"自然奇境", desc:"探索世界各地的壯闊自然奇觀" },
-  { icon:"🦁", title:"野性探索", desc:"近距離感受野生動物的生命力" },
-  { icon:"🎭", title:"人文漫遊", desc:"感受大千世界的異國文化與風俗" },
-  { icon:"❄️", title:"極地探險", desc:"前進世界盡頭，走訪南北極之美" },
-  { icon:"🗺️", title:"百國秘境", desc:"資深玩家限定，解鎖世界隱藏秘境" },
+// ============================================================
+// 題目資料（※ 後端 backend/src/validation.js 的選項必須與這裡完全一致）
+// 每個選項的 img 欄位可選：填入網站內的圖片路徑（例如 "images/baikal.jpg"）就會改用實景小圖，
+// 沒填則使用漸層底色＋圖示。
+// ============================================================
+const CONTINENTS = [
+  { label:"亞洲",   icon:"🌏" },
+  { label:"歐洲",   icon:"🏰" },
+  { label:"北美洲", icon:"🗽" },
+  { label:"南美洲", icon:"🦙" },
+  { label:"非洲",   icon:"🦒" },
+  { label:"大洋洲", icon:"🦘" },
+  { label:"南極洲", icon:"🐧" },
 ];
 
-const CONSULTANTS = ["曾玟娸","蔡孟谷","呂適仲","林芮杋","耿曼綸","高瑛捷","林梅瑄","胡詒靖","王秋萍","陳姸方","馬筠家","郭厚璋","徐維閔","張書元"];
-const CONSULTANT_OTHER = "其他";
+const SCENES = [
+  { text:"在婆羅摩火山之巔，等待第一道晨光劃破天際。",         icon:"🌋", c:["#ff9966","#7b4397"], img:"" },
+  { text:"在伊瓜蘇「惡魔的咽喉」前，感受天地磅礴的震撼。",       icon:"💦", c:["#43c6ac","#191654"], img:"" },
+  { text:"在非洲大草原，親眼見證萬千生命奔騰的動物大遷徙。",     icon:"🦓", c:["#f6d365","#c0762f"], img:"" },
+  { text:"在寶藍色的撒馬爾罕，走進千年絲路文明的輝煌。",         icon:"🕌", c:["#36d1dc","#1f4e9c"], img:"" },
+  { text:"在熱情奔放的森巴舞中，感受南美最純粹的歡樂。",         icon:"💃", c:["#f857a6","#ff5858"], img:"" },
+  { text:"在雷納漁屋仰望天際，等待北歐女神歐若拉的降臨。",       icon:"🌌", c:["#134e5e","#71b280"], img:"" },
+  { text:"在俄羅斯，仰望如童話糖果屋般夢幻的東正教教堂。",       icon:"⛪", c:["#ee9ca7","#7f7fd5"], img:"" },
+  { text:"在現代世界裡走進百年古堡，赴一場穿越時空的視覺饗宴。", icon:"🏰", c:["#bdc3c7","#2c3e50"], img:"" },
+  { text:"搭上西伯利亞大鐵路，讓窗外的風景一路橫跨歐亞大陸。",   icon:"🚂", c:["#8e9eab","#3a6073"], img:"" },
+  { text:"在無聲卻充滿張力的卡塔卡利舞中，感受印度文化的濃烈渲染。", icon:"🎭", c:["#f7971e","#b0223a"], img:"" },
+];
 
-// TODO: 部署後端後，換成實際的 Cloud Function 網址
+const OTHER = "其他";
+const DESTS = [
+  { name:"蒙古貝加爾湖",     icon:"🏞️", c:["#74ebd5","#3a6ea5"], code:"IKT", city:"貝加爾湖", img:"" },
+  { name:"東非動物大遷徙",   icon:"🦁", c:["#f6d365","#d2691e"], code:"NBO", city:"東非大草原", img:"" },
+  { name:"中亞古絲路",       icon:"🐫", c:["#36d1dc","#1f4e9c"], code:"SKD", city:"撒馬爾罕", img:"" },
+  { name:"西伯利亞鐵路",     icon:"🚆", c:["#8e9eab","#2c3e50"], code:"OVB", city:"西伯利亞", img:"" },
+  { name:"俄羅斯經典雙城",   icon:"🏛️", c:["#ee9ca7","#5f5aa2"], code:"SVO", city:"莫斯科・聖彼得堡", img:"" },
+  { name:"中南美洲壯遊",     icon:"🌎", c:["#43c6ac","#f8b500"], code:"LIM", city:"中南美洲", img:"" },
+  { name:"南印度香料之旅",   icon:"🌶️", c:["#f7971e","#b0223a"], code:"COK", city:"南印度", img:"" },
+  { name:"紐西蘭南北島全覽", icon:"🐑", c:["#56ab2f","#1d6f8a"], code:"AKL", city:"紐西蘭", img:"" },
+  { name:OTHER,              icon:"✨", c:["#bdc3c7","#6c7a89"], code:"ANY", city:"世界某處", img:"" },
+];
+
+const CONSULTANTS = ["曾玟娸","蔡孟谷","呂適仲","林芮杋","耿曼綸","高瑛婕","林梅瑄","胡詒靖","王秋萍","陳姸方","馬筠家","郭厚璋","徐維閔","張書元","張晉嘉"];
+
 const API_URL = "https://asia-east1-project-c196e615-65e3-44bb-ada.cloudfunctions.net/submitQuiz";
 
-let selected = new Set();
-let activeTab = "all";
-
-let selectedPreferences = new Set();
-
+// ============================================================
+let selContinents = new Set();
+let selScenes = new Set();
+let selDests = new Set();
 let submissionId = null;
 let isSubmitting = false;
-
-function startQuiz(){
-  submissionId = crypto.randomUUID();
-  go('s-q1');
-}
+let ticketDest = null;
 
 function go(id){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
   window.scrollTo(0,0);
 }
-
-// ---------- Q1：走過的地方 ----------
-function buildTabs(){
-  const tabs = [["all","全部"], ...REGIONS.map(r=>[r.key, r.label])];
-  document.getElementById("tabs").innerHTML = tabs.map(([k,l])=>
-    `<div class="tab ${k===activeTab?'active':''}" onclick="setTab('${k}')">${l}</div>`).join("");
-}
-function setTab(k){ activeTab = k; buildTabs(); renderList(); }
-
-function renderList(){
-  const q = document.getElementById("search").value.trim();
-  const regionsToShow = activeTab === "all" ? REGIONS : REGIONS.filter(r=>r.key===activeTab);
-  let html = "";
-  regionsToShow.forEach(region=>{
-    region.groups.forEach(group=>{
-      let items = group.items;
-      if(q) items = items.filter(name=>name.includes(q));
-      if(items.length===0) return;
-      const label = group.label ? group.label : (activeTab==="all" ? region.label : null);
-      if(label) html += `<div class="groupLabel">${label}</div>`;
-      html += `<div class="grid">` + items.map(name=>
-        `<div class="chip ${selected.has(name)?'sel':''}" onclick="toggleCountry('${name}')">${name}</div>`).join("") + `</div>`;
-    });
-  });
-  document.getElementById("countryGrid").innerHTML = html || `<p class="sub">找不到符合的地點</p>`;
-  updateCounts();
-}
-function toggleCountry(name){
-  if(selected.has(name)) selected.delete(name); else selected.add(name);
-  renderList();
-}
-function updateCounts(){
-  const n = selected.size;
-  const pct = (n/TOTAL*100).toFixed(1);
-  document.getElementById("litCount").textContent = `已點亮 ${n} / ${TOTAL} 個地方`;
-  document.getElementById("litPct").textContent = `世界完成度 ${pct}%`;
-  document.getElementById("progFill").style.width = pct + "%";
+function startQuiz(){
+  if(!submissionId) submissionId = crypto.randomUUID();
+  go("s-q1");
 }
 
-function mostContinent(){
-  const count = {};
-  selected.forEach(name=>{
-    for(const region of REGIONS){
-      if(region.groups.some(g=>g.items.includes(name))){
-        count[region.key] = (count[region.key]||0)+1;
-        break;
-      }
-    }
-  });
-  let best=null, bestN=0;
-  for(const k in count){ if(count[k]>bestN){ best=k; bestN=count[k]; } }
-  const region = REGIONS.find(r=>r.key===best);
-  return region ? region.label : "尚未探索";
-}
-function badgeFor(n){
-  if(n<=5) return "🌱 旅行初心者";
-  if(n<=15) return "🧳 世界旅行者";
-  if(n<=30) return "✈️ 地球探險家";
-  if(n<=50) return "🌍 世界冒險家";
-  return "👑 地球收藏家";
+function thumbStyle(item){
+  if(item.img) return `background-image:url('${item.img}')`;
+  return `background:linear-gradient(135deg,${item.c[0]},${item.c[1]})`;
 }
 
-function goResults(){
-  const n = selected.size, pct = (n/TOTAL*100).toFixed(1);
-  document.getElementById("r1count").textContent = n + " 個地方";
-  document.getElementById("r1pct").textContent = pct + "%";
-  document.getElementById("r1cont").textContent = mostContinent();
-  document.getElementById("r1badge").textContent = badgeFor(n);
-  go("s-result1");
+// ---------- 建立各題畫面 ----------
+function buildContinents(){
+  document.getElementById("contGrid").innerHTML = CONTINENTS.map((c,i)=>
+    `<div class="contItem ${selContinents.has(c.label)?'sel':''}" onclick="toggleItem('cont',${i},this)"><span class="ico">${c.icon}</span>${c.label}</div>`
+  ).join("");
 }
-
-// ---------- Q2：旅行偏好（合併後，複選） ----------
-function buildPreferences(){
-  document.getElementById("prefList").innerHTML = TRAVEL_PREFERENCES.map(p=>{
-    const sel = selectedPreferences.has(p.title);
-    return `<div class="prefRow ${sel?'sel':''}" onclick="togglePreference('${p.title}')">
-      <div class="prefIcon">${p.icon}</div>
-      <div class="prefBody">
-        <div class="prefTitle">${p.title}</div>
-        <div class="prefDesc">${p.desc}</div>
-      </div>
-      <div class="prefCheck">✓</div>
-    </div>`;
-  }).join("");
+function buildScenes(){
+  document.getElementById("sceneList").innerHTML = SCENES.map((s,i)=>
+    `<div class="optRow ${selScenes.has(s.text)?'sel':''}" onclick="toggleItem('scene',${i},this)">
+       <div class="thumb" style="${thumbStyle(s)}">${s.img?'':s.icon}</div>
+       <div class="optText">${s.text}</div>
+       <div class="tick">✓</div>
+     </div>`).join("");
 }
-function togglePreference(title){
-  if(selectedPreferences.has(title)) selectedPreferences.delete(title); else selectedPreferences.add(title);
-  buildPreferences();
-  document.getElementById("q2Next").disabled = selectedPreferences.size === 0;
+function buildDests(){
+  document.getElementById("destList").innerHTML = DESTS.map((d,i)=>
+    `<div class="optRow ${selDests.has(d.name)?'sel':''}" onclick="toggleItem('dest',${i},this)">
+       <div class="thumb" style="${thumbStyle(d)}">${d.img?'':d.icon}</div>
+       <div class="optText"><b>${d.name}</b></div>
+       <div class="tick">✓</div>
+     </div>`).join("");
 }
-
-// ---------- 聯絡資訊 ----------
 function buildConsultants(){
   const sel = document.getElementById("consultant");
-  CONSULTANTS.forEach(name=>{
-    const opt = document.createElement("option");
-    opt.value = name; opt.textContent = name;
-    sel.appendChild(opt);
+  CONSULTANTS.forEach(n=>{
+    const o = document.createElement("option");
+    o.value = n; o.textContent = n; sel.appendChild(o);
   });
-  const otherOpt = document.createElement("option");
-  otherOpt.value = CONSULTANT_OTHER; otherOpt.textContent = "其他";
-  sel.appendChild(otherOpt);
 }
 
-function onConsultantChange(){
-  const isOther = document.getElementById("consultant").value === CONSULTANT_OTHER;
-  const otherInput = document.getElementById("consultantOther");
-  otherInput.style.display = isOther ? "block" : "none";
-  if(!isOther) otherInput.value = "";
+function toggleItem(kind, idx, el){
+  let set, key;
+  if(kind==="cont"){ set = selContinents; key = CONTINENTS[idx].label; }
+  else if(kind==="scene"){ set = selScenes; key = SCENES[idx].text; }
+  else { set = selDests; key = DESTS[idx].name; }
+  if(set.has(key)) set.delete(key); else set.add(key);
+  el.classList.toggle("sel", set.has(key));
+  document.getElementById("q2Next").disabled = selScenes.size === 0;
+  document.getElementById("q3Next").disabled = selDests.size === 0;
+}
+
+// ---------- 題目四：表單 ----------
+function onPhoneInput(){
+  const el = document.getElementById("phone");
+  el.value = el.value.replace(/\D/g,"").slice(0,10);
+  const hint = document.getElementById("phoneHint");
+  if(el.value.length === 0 || el.value.length === 10){
+    hint.className = "hint";
+    hint.textContent = "格式：10 碼數字，例如 0912345678";
+  } else {
+    hint.className = "hint bad";
+    hint.textContent = `還差 ${10-el.value.length} 碼（目前 ${el.value.length} 碼）`;
+  }
   checkSubmit();
 }
-
-function checkSubmit(){
-  const consentOk = document.getElementById("consent").checked;
-  const consultantVal = document.getElementById("consultant").value;
-  let consultantOk = consultantVal !== "";
-  if(consultantVal === CONSULTANT_OTHER){
-    consultantOk = document.getElementById("consultantOther").value.trim() !== "";
-  }
-  document.getElementById("submitBtn").disabled = !(consentOk && consultantOk);
+function formValid(){
+  return document.getElementById("name").value.trim() !== ""
+    && /^[0-9]{10}$/.test(document.getElementById("phone").value)
+    && document.getElementById("consultant").value !== ""
+    && document.getElementById("consent").checked;
 }
-
+function checkSubmit(){
+  document.getElementById("submitBtn").disabled = !formValid() || isSubmitting;
+}
 function showSubmitError(msg){
   const el = document.getElementById("submitError");
-  el.textContent = msg;
-  el.style.display = "block";
+  el.textContent = msg; el.style.display = "block";
 }
 function clearSubmitError(){
   const el = document.getElementById("submitError");
-  el.style.display = "none";
-  el.textContent = "";
+  el.style.display = "none"; el.textContent = "";
+}
+
+function orderedSelection(list, set, keyFn){
+  return list.map(keyFn).filter(k=>set.has(k));
+}
+
+// 從題目三的回答隨機抽一個地點（若除了「其他」之外沒有別的，就用「其他」）
+function pickTicketDest(){
+  const chosen = orderedSelection(DESTS, selDests, d=>d.name);
+  if(ticketDest && chosen.includes(ticketDest)) return ticketDest;   // 重送時維持同一個結果
+  const pool = chosen.filter(n=>n!==OTHER);
+  const list = pool.length ? pool : chosen;
+  ticketDest = list[Math.floor(Math.random()*list.length)];
+  return ticketDest;
 }
 
 async function submitForm(){
-  if(isSubmitting) return;
-  if(!submissionId){ submissionId = crypto.randomUUID(); }
+  if(isSubmitting || !formValid()) return;
+  if(!submissionId) submissionId = crypto.randomUUID();
 
-  const name = document.getElementById("name").value.trim();
-  const phone = document.getElementById("phone").value.trim();
-  const consultantSelect = document.getElementById("consultant").value;
-  const consultant = consultantSelect === CONSULTANT_OTHER
-    ? document.getElementById("consultantOther").value.trim()
-    : consultantSelect;
   const btn = document.getElementById("submitBtn");
+  const name = document.getElementById("name").value.trim();
+  const consultant = document.getElementById("consultant").value;
+
+  const payload = {
+    submission_id: submissionId,
+    name,
+    phone: document.getElementById("phone").value,
+    consultant,
+    continents: orderedSelection(CONTINENTS, selContinents, c=>c.label),
+    scenes: orderedSelection(SCENES, selScenes, s=>s.text),
+    destinations: orderedSelection(DESTS, selDests, d=>d.name),
+    ticketDestination: pickTicketDest(),
+    consent: document.getElementById("consent").checked === true
+  };
 
   clearSubmitError();
   isSubmitting = true;
   btn.disabled = true;
   const originalLabel = btn.textContent;
   btn.textContent = "送出中...";
-
-  const payload = {
-    submission_id: submissionId,
-    name,
-    phone,
-    consultant,
-    countries: Array.from(selected),
-    travelPreferences: Array.from(selectedPreferences),
-    consent: document.getElementById("consent").checked === true
-  };
 
   try{
     const res = await fetch(API_URL, {
@@ -493,27 +450,13 @@ async function submitForm(){
     try{ json = await res.json(); }catch(e){}
 
     if(res.ok && json && json.success){
-      const r = json.result;
-      document.getElementById("doneName").textContent = `${name || "旅人"}，你已經走過`;
-      document.getElementById("doneCount").textContent = r.countryCount + " 個地方";
-      document.getElementById("donePct").textContent = r.percent + "%";
-      document.getElementById("doneBadge").textContent = r.badge;
-      document.getElementById("doneContinent").textContent = mostContinent();
-      document.getElementById("doneFlags").innerHTML = Array.from(selected).map(name=>
-        `<div class="flagChip"><span class="flagEmoji">${flagFor(name)}</span>${name}</div>`
-      ).join("") || `<p class="sub">尚未選擇任何地方</p>`;
-      document.getElementById("donePrefs").innerHTML = Array.from(selectedPreferences).map(title=>{
-        const p = TRAVEL_PREFERENCES.find(x=>x.title===title);
-        return `<div class="flagChip"><span class="flagEmoji">${p?p.icon:"❤️"}</span>${title}</div>`;
-      }).join("");
-      const remain = (100 - parseFloat(r.percent)).toFixed(1);
-      document.getElementById("doneRemain").textContent = `還有 ${remain}% 的世界，等著我去看看！`;
+      renderTicket(name, consultant, payload.ticketDestination);
       go("s-done");
       launchConfetti();
     } else {
       const code = json && json.error ? json.error : "unknown_error";
       if(code === "invalid_payload"){
-        showSubmitError("資料格式有誤，請確認姓名／手機（需 10 碼數字）／旅遊顧問是否正確填寫。");
+        showSubmitError("資料格式有誤，請確認姓名、手機（需 10 碼數字）與旅遊顧問是否正確填寫。");
       } else if(code === "processing_in_progress"){
         showSubmitError("這筆資料正在處理中，請稍候幾秒後再試一次。");
       } else {
@@ -524,13 +467,42 @@ async function submitForm(){
     showSubmitError("無法連線到伺服器，請檢查網路後重試，您的資料仍保留在畫面上。");
   }finally{
     isSubmitting = false;
-    checkSubmit();
     btn.textContent = originalLabel;
+    checkSubmit();
   }
 }
 
+// ---------- 登機證 ----------
+function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+
+function renderTicket(name, consultant, destName){
+  const d = DESTS.find(x=>x.name===destName) || DESTS[DESTS.length-1];
+  const hero = document.getElementById("tkHero");
+  hero.style.cssText = thumbStyle(d) + ";" ;
+  hero.style.backgroundSize = "cover"; hero.style.backgroundPosition = "center";
+  document.getElementById("tkEmoji").textContent = d.img ? "" : d.icon;
+  document.getElementById("tkDest").textContent = d.name === OTHER ? "世界某處，等您決定" : d.name;
+  document.getElementById("tkCode").textContent = d.code;
+  document.getElementById("tkCity").textContent = d.city;
+  document.getElementById("tkName").textContent = name;
+  document.getElementById("tkConsultant").textContent = consultant;
+
+  const now = new Date();
+  const pad = n=>String(n).padStart(2,"0");
+  document.getElementById("tkDate").textContent = `${now.getFullYear()}.${pad(now.getMonth()+1)}.${pad(now.getDate())}`;
+  document.getElementById("tkFlight").textContent = "WV " + randInt(100,899);
+  document.getElementById("tkGate").textContent = "ABCDE"[randInt(0,4)] + randInt(1,18);
+  document.getElementById("tkSeat").textContent = randInt(1,38) + "ABCDEF"[randInt(0,5)];
+
+  let bars = "";
+  for(let i=0;i<46;i++){
+    bars += `<i style="width:${randInt(1,4)}px;margin-right:${randInt(1,3)}px"></i>`;
+  }
+  document.getElementById("tkBarcode").innerHTML = bars;
+}
+
 function launchConfetti(){
-  const em = ["🎉","✨","🌍","🎊","🧳"];
+  const em = ["🎉","✨","✈️","🎊","🧳"];
   for(let i=0;i<24;i++){
     const s = document.createElement("div");
     s.className = "confetti";
@@ -542,89 +514,64 @@ function launchConfetti(){
   }
 }
 
-function saveResultImage(){
-  const card = document.querySelector('#s-done .card');
-  const btn = document.getElementById('saveImgBtn');
-  const btnsToHide = card.querySelectorAll('button');
-  const restore = () => { btnsToHide.forEach(b=>b.style.visibility=''); btn.textContent = '💾 儲存我的結果圖片'; };
-
-  if (typeof html2canvas === 'undefined') {
-    alert('圖片工具載入失敗，請確認網路連線後，重新整理頁面再試一次。');
+// ---------- 儲存登機證為圖片 ----------
+function saveTicketImage(){
+  const target = document.getElementById("ticketWrap");
+  const btn = document.getElementById("saveImgBtn");
+  const label = "💾 儲存我的登機證";
+  if(typeof html2canvas === "undefined"){
+    alert("圖片工具載入失敗，請確認網路連線後，重新整理頁面再試一次。");
     return;
   }
-
   const isIOS = /iP(hone|od|ad)/.test(navigator.userAgent);
+  btn.textContent = "產生圖片中…"; btn.disabled = true;
+  const done = ()=>{ btn.textContent = label; btn.disabled = false; };
 
-  btnsToHide.forEach(b=>b.style.visibility='hidden');
-  btn.textContent = '產生圖片中…';
-
-  const bg = getComputedStyle(document.body).backgroundColor;
-  try {
-    html2canvas(card, { backgroundColor: bg || '#ffffff', scale: 2, useCORS: true }).then(canvas=>{
-      restore();
-      if (isIOS) {
-        // iOS Safari 對 <a download> 的支援不穩定，改成開新分頁直接顯示圖片，
-        // 讓使用者用手機最熟悉的方式：長按圖片 → 儲存至照片
-        const dataUrl = canvas.toDataURL('image/png');
+  try{
+    html2canvas(target, { backgroundColor:"#efe7d6", scale:2, useCORS:true }).then(canvas=>{
+      done();
+      const dataUrl = canvas.toDataURL("image/png");
+      if(isIOS){
+        // iOS Safari 對 <a download> 支援不穩，改開新分頁顯示圖片，讓使用者長按儲存至照片
         const win = window.open();
-        if (win) {
+        if(win){
           win.document.write(
             '<!doctype html><html><head><meta charset="utf-8"><title>長按圖片儲存</title>' +
             '<meta name="viewport" content="width=device-width, initial-scale=1"></head>' +
             '<body style="margin:0;background:#0f2740;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:-apple-system,sans-serif;">' +
             '<p style="color:#fff;font-size:15px;margin:16px;">長按下方圖片，選擇「儲存至照片」</p>' +
-            '<img src="' + dataUrl + '" style="max-width:94%;height:auto;border-radius:16px;">' +
-            '</body></html>'
+            '<img src="' + dataUrl + '" style="max-width:94%;height:auto;border-radius:16px;"></body></html>'
           );
           win.document.close();
         } else {
-          alert('無法開啟新分頁，請確認瀏覽器沒有封鎖彈出視窗，或改用「分享文字」功能。');
+          alert("無法開啟新分頁，請確認瀏覽器沒有封鎖彈出視窗。");
         }
       } else {
-        const link = document.createElement('a');
-        link.download = '我的世界足跡.png';
-        link.href = canvas.toDataURL('image/png');
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
+        const a = document.createElement("a");
+        a.download = "我的登機證.png"; a.href = dataUrl;
+        document.body.appendChild(a); a.click(); a.remove();
       }
-    }).catch(()=>{
-      restore();
-      alert('圖片產生失敗，請稍後再試，或改用「分享文字」。');
-    });
-  } catch (err) {
-    restore();
-    alert('圖片產生失敗，請稍後再試，或改用「分享文字」。');
+    }).catch(()=>{ done(); alert("圖片產生失敗，請稍後再試。"); });
+  }catch(e){
+    done(); alert("圖片產生失敗，請稍後再試。");
   }
 }
 
-function shareResult(){
-  const n = selected.size, pct=(n/TOTAL*100).toFixed(1);
-  const text = `我在「你的世界走了幾%」測驗中走過了 ${n} 個地方，解鎖世界 ${pct}%，稱號是 ${badgeFor(n)}！`;
-  if(navigator.share){ navigator.share({text}).catch(()=>{}); }
-  else { navigator.clipboard?.writeText(text); alert("已複製分享文字：\n" + text); }
-}
-
 function restart(){
-  selected = new Set();
-  selectedPreferences = new Set();
-  submissionId = null; isSubmitting = false;
-  document.getElementById("name").value=""; document.getElementById("phone").value="";
+  selContinents = new Set(); selScenes = new Set(); selDests = new Set();
+  submissionId = null; isSubmitting = false; ticketDest = null;
+  document.getElementById("name").value = "";
+  document.getElementById("phone").value = "";
   document.getElementById("consultant").value = "";
-  document.getElementById("consultantOther").value = "";
-  document.getElementById("consultantOther").style.display = "none";
-  document.getElementById("consent").checked=false;
+  document.getElementById("consent").checked = false;
   document.getElementById("q2Next").disabled = true;
-  document.getElementById("submitBtn").disabled = true;
-  clearSubmitError();
-  buildTabs(); renderList();
-  buildPreferences();
+  document.getElementById("q3Next").disabled = true;
+  onPhoneInput(); clearSubmitError();
+  buildContinents(); buildScenes(); buildDests();
   go("s-start");
 }
 
-buildTabs(); renderList();
-buildPreferences();
-buildConsultants();
+buildContinents(); buildScenes(); buildDests(); buildConsultants();
 </script>
 </body>
 </html>
