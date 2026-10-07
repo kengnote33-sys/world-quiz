@@ -95,6 +95,7 @@ label.consent input{ width:20px; height:20px; margin:2px 0 0; flex:0 0 20px; acc
 .tkType{ text-align:right; font-size:.62rem; letter-spacing:.18em; color:var(--gold); font-weight:700; }
 .tkType b{ display:block; color:#fff; font-size:.9rem; letter-spacing:.08em; }
 .tkHero{ height:150px; position:relative; display:flex; align-items:flex-end; padding:14px 16px; background-size:cover; background-position:center; overflow:hidden; }
+.tkHero:before{ content:""; position:absolute; left:0; right:0; top:0; bottom:0; background:linear-gradient(180deg,rgba(0,0,0,0) 35%,rgba(0,0,0,.5) 100%); }
 .tkHero .big{ position:absolute; right:14px; top:6px; font-size:5.2rem; line-height:1; opacity:.95; }
 .tkHero .c1, .tkHero .c2{ position:absolute; border-radius:50%; background:rgba(255,255,255,.16); }
 .tkHero .c1{ width:150px; height:150px; left:-40px; top:-60px; }
@@ -122,6 +123,11 @@ label.consent input{ width:20px; height:20px; margin:2px 0 0; flex:0 0 20px; acc
 .tkStub .slogan{ font-size:.62rem; letter-spacing:.14em; color:var(--sub); text-align:right; line-height:1.7; white-space:nowrap; }
 .tkStub .slogan b{ display:block; color:var(--navy); font-size:.8rem; letter-spacing:.06em; }
 .footer{ text-align:center; color:rgba(255,255,255,.7); font-size:.75rem; margin-top:18px; }
+.credits{ color:rgba(255,255,255,.65); font-size:.68rem; margin-top:10px; text-align:center; }
+.credits summary{ cursor:pointer; list-style:none; text-decoration:underline; }
+.credits ul{ text-align:left; padding-left:18px; margin:10px 0 0; line-height:1.7; }
+.credits a{ color:rgba(255,255,255,.9); }
+.tkCredit{ position:absolute; right:10px; bottom:6px; font-size:.5rem; color:rgba(255,255,255,.85); text-shadow:0 1px 3px rgba(0,0,0,.6); letter-spacing:.02em; }
 .confetti{ position:fixed; top:-10px; font-size:1.4rem; animation:fall 2.6s linear forwards; pointer-events:none; z-index:20; }
 @keyframes fall{ to{ transform:translateY(110vh) rotate(300deg); opacity:.2; } }
 </style>
@@ -195,9 +201,10 @@ label.consent input{ width:20px; height:20px; margin:2px 0 0; flex:0 0 20px; acc
       <div class="hint" id="phoneHint">格式：10 碼數字，例如 0912345678</div>
 
       <label class="field" for="consultant">旅遊顧問</label>
-      <select id="consultant" onchange="checkSubmit()">
+      <select id="consultant" onchange="onConsultantChange()">
         <option value="">請選擇您的旅遊顧問</option>
       </select>
+      <input type="text" id="consultantOther" maxlength="30" placeholder="請填寫旅遊顧問姓名" autocomplete="off" style="display:none;margin-top:8px" oninput="checkSubmit()">
 
       <label class="consent">
         <input type="checkbox" id="consent" onchange="checkSubmit()">
@@ -229,6 +236,7 @@ label.consent input{ width:20px; height:20px; margin:2px 0 0; flex:0 0 20px; acc
           <div class="c1"></div><div class="c2"></div>
           <div class="big" id="tkEmoji"></div>
           <div class="next"><small>NEXT STOP · 下一站</small><b id="tkDest"></b></div>
+          <div class="tkCredit" id="tkCredit"></div>
         </div>
         <div class="tkRoute">
           <div class="city"><div class="code">TPE</div><div class="name">台北</div></div>
@@ -256,6 +264,10 @@ label.consent input{ width:20px; height:20px; margin:2px 0 0; flex:0 0 20px; acc
   </section>
 
   <div class="footer">旅展活動 ｜ 航向世界旅遊</div>
+  <details class="credits">
+    <summary>照片來源與授權</summary>
+    <ul id="creditList"></ul>
+  </details>
 </div>
 
 <script>
@@ -275,32 +287,60 @@ const CONTINENTS = [
 ];
 
 const SCENES = [
-  { text:"在婆羅摩火山之巔，等待第一道晨光劃破天際。",         icon:"🌋", c:["#ff9966","#7b4397"], img:"" },
-  { text:"在伊瓜蘇「惡魔的咽喉」前，感受天地磅礴的震撼。",       icon:"💦", c:["#43c6ac","#191654"], img:"" },
-  { text:"在非洲大草原，親眼見證萬千生命奔騰的動物大遷徙。",     icon:"🦓", c:["#f6d365","#c0762f"], img:"" },
-  { text:"在寶藍色的撒馬爾罕，走進千年絲路文明的輝煌。",         icon:"🕌", c:["#36d1dc","#1f4e9c"], img:"" },
-  { text:"在熱情奔放的森巴舞中，感受南美最純粹的歡樂。",         icon:"💃", c:["#f857a6","#ff5858"], img:"" },
-  { text:"在雷納漁屋仰望天際，等待北歐女神歐若拉的降臨。",       icon:"🌌", c:["#134e5e","#71b280"], img:"" },
-  { text:"在俄羅斯，仰望如童話糖果屋般夢幻的東正教教堂。",       icon:"⛪", c:["#ee9ca7","#7f7fd5"], img:"" },
-  { text:"在現代世界裡走進百年古堡，赴一場穿越時空的視覺饗宴。", icon:"🏰", c:["#bdc3c7","#2c3e50"], img:"" },
-  { text:"搭上西伯利亞大鐵路，讓窗外的風景一路橫跨歐亞大陸。",   icon:"🚂", c:["#8e9eab","#3a6073"], img:"" },
-  { text:"在無聲卻充滿張力的卡塔卡利舞中，感受印度文化的濃烈渲染。", icon:"🎭", c:["#f7971e","#b0223a"], img:"" },
+  { text:"在婆羅摩火山之巔，等待第一道晨光劃破天際。",         icon:"🌋", c:["#ff9966","#7b4397"], photo:"bromo" },
+  { text:"在伊瓜蘇「惡魔的咽喉」前，感受天地磅礴的震撼。",       icon:"💦", c:["#43c6ac","#191654"], photo:"iguazu" },
+  { text:"在非洲大草原，親眼見證萬千生命奔騰的動物大遷徙。",     icon:"🦓", c:["#f6d365","#c0762f"], photo:"migration1" },
+  { text:"在寶藍色的撒馬爾罕，走進千年絲路文明的輝煌。",         icon:"🕌", c:["#36d1dc","#1f4e9c"], photo:"registan" },
+  { text:"在熱情奔放的森巴舞中，感受南美最純粹的歡樂。",         icon:"💃", c:["#f857a6","#ff5858"], photo:"samba" },
+  { text:"在雷納漁屋仰望天際，等待北歐女神歐若拉的降臨。",       icon:"🌌", c:["#134e5e","#71b280"], photo:"reine" },
+  { text:"在俄羅斯，仰望如童話糖果屋般夢幻的東正教教堂。",       icon:"⛪", c:["#ee9ca7","#7f7fd5"], photo:"stbasil" },
+  { text:"在現代世界裡走進百年古堡，赴一場穿越時空的視覺饗宴。", icon:"🏰", c:["#bdc3c7","#2c3e50"], photo:"castle" },
+  { text:"搭上西伯利亞大鐵路，讓窗外的風景一路橫跨歐亞大陸。",   icon:"🚂", c:["#8e9eab","#3a6073"], photo:"transsib" },
+  { text:"在無聲卻充滿張力的卡塔卡利舞中，感受印度文化的濃烈渲染。", icon:"🎭", c:["#f7971e","#b0223a"], photo:"kathakali" },
 ];
 
 const OTHER = "其他";
 const DESTS = [
-  { name:"蒙古貝加爾湖",     icon:"🏞️", c:["#74ebd5","#3a6ea5"], code:"IKT", city:"貝加爾湖", img:"" },
-  { name:"東非動物大遷徙",   icon:"🦁", c:["#f6d365","#d2691e"], code:"NBO", city:"東非大草原", img:"" },
-  { name:"中亞古絲路",       icon:"🐫", c:["#36d1dc","#1f4e9c"], code:"SKD", city:"撒馬爾罕", img:"" },
-  { name:"西伯利亞鐵路",     icon:"🚆", c:["#8e9eab","#2c3e50"], code:"OVB", city:"西伯利亞", img:"" },
-  { name:"俄羅斯經典雙城",   icon:"🏛️", c:["#ee9ca7","#5f5aa2"], code:"SVO", city:"莫斯科・聖彼得堡", img:"" },
-  { name:"中南美洲壯遊",     icon:"🌎", c:["#43c6ac","#f8b500"], code:"LIM", city:"中南美洲", img:"" },
-  { name:"南印度香料之旅",   icon:"🌶️", c:["#f7971e","#b0223a"], code:"COK", city:"南印度", img:"" },
-  { name:"紐西蘭南北島全覽", icon:"🐑", c:["#56ab2f","#1d6f8a"], code:"AKL", city:"紐西蘭", img:"" },
+  { name:"蒙古貝加爾湖",     icon:"🏞️", c:["#74ebd5","#3a6ea5"], code:"IKT", city:"貝加爾湖", photo:"baikal" },
+  { name:"東非動物大遷徙",   icon:"🦁", c:["#f6d365","#d2691e"], code:"NBO", city:"東非大草原", photo:"migration2" },
+  { name:"中亞古絲路",       icon:"🐫", c:["#36d1dc","#1f4e9c"], code:"SKD", city:"撒馬爾罕", photo:"bukhara" },
+  { name:"西伯利亞鐵路",     icon:"🚆", c:["#8e9eab","#2c3e50"], code:"OVB", city:"西伯利亞", photo:"transsib" },
+  { name:"俄羅斯經典雙城",   icon:"🏛️", c:["#ee9ca7","#5f5aa2"], code:"SVO", city:"莫斯科・聖彼得堡", photo:"savior" },
+  { name:"中南美洲壯遊",     icon:"🌎", c:["#43c6ac","#f8b500"], code:"LIM", city:"中南美洲", photo:"machu" },
+  { name:"南印度香料之旅",   icon:"🌶️", c:["#f7971e","#b0223a"], code:"COK", city:"南印度", photo:"kathakali" },
+  { name:"紐西蘭南北島全覽", icon:"🐑", c:["#56ab2f","#1d6f8a"], code:"AKL", city:"紐西蘭", photo:"milford" },
   { name:OTHER,              icon:"✨", c:["#bdc3c7","#6c7a89"], code:"ANY", city:"世界某處", img:"" },
 ];
 
-const CONSULTANTS = ["曾玟娸","蔡孟谷","呂適仲","林芮杋","耿曼綸","高瑛婕","林梅瑄","胡詒靖","王秋萍","陳姸方","馬筠家","郭厚璋","徐維閔","張書元","張晉嘉"];
+// ============================================================
+// 實景照片（來源：Wikimedia Commons；本機檔名 = images/<key>.jpg）
+// 以下授權都要求標示作者，頁面底部「照片來源與授權」及機票右下角會自動顯示。
+// 要換成自己的照片：把圖檔放進 images/ 並用同樣的檔名覆蓋，同時修改這裡的 author / license。
+// ============================================================
+const USE_PHOTOS = false; // 沒上傳 images 資料夾前保持 false（用漸層＋表情符號）
+const PHOTOS = {
+  bromo:      { file:"Mount Bromo at sunrise, showing its volcanoes and Mount Semeru (background).jpg", author:"Thomas Hirsch (Ravn)", license:"CC BY-SA 3.0", licenseUrl:"https://creativecommons.org/licenses/by-sa/3.0/" },
+  iguazu:     { file:"Garganta del Diablo or Devil Throat Iguazu Falls Argentina Luca Galuzzi 2005.JPG", author:"Luca Galuzzi", license:"CC BY-SA 2.5", licenseUrl:"https://creativecommons.org/licenses/by-sa/2.5/" },
+  migration1: { file:"Wildebeest-during-Great-Migration.JPG", author:"Bjørn Christian Tørrissen", license:"CC BY-SA 3.0", licenseUrl:"https://creativecommons.org/licenses/by-sa/3.0/" },
+  migration2: { file:"GnusAndZebrasInMaraMasai.jpg", author:"Key45", license:"CC BY 2.0", licenseUrl:"https://creativecommons.org/licenses/by/2.0/" },
+  registan:   { file:"RegistanSquare Samarkand.jpg", author:"Gustavo Jeronimo", license:"CC BY 2.0", licenseUrl:"https://creativecommons.org/licenses/by/2.0/" },
+  bukhara:    { file:"Bukhara Kalyan minaret.JPG", author:"Patrickringgenberg", license:"CC BY-SA 3.0", licenseUrl:"https://creativecommons.org/licenses/by-sa/3.0/" },
+  stbasil:    { file:"Saint Basil's Cathedral (19345712403).jpg", author:"Jorge Láscar", license:"CC BY 2.0", licenseUrl:"https://creativecommons.org/licenses/by/2.0/" },
+  savior:     { file:"The Church of the Saviour on Spilled Blood (20956466968).jpg", author:"Jorge Láscar", license:"CC BY 2.0", licenseUrl:"https://creativecommons.org/licenses/by/2.0/" },
+  castle:     { file:"Neuschwanstein Castle 2024.jpg", author:"Wilfredor", license:"CC0 1.0", licenseUrl:"https://creativecommons.org/publicdomain/zero/1.0/" },
+  transsib:   { file:"Trans Sibir.JPG", author:"Petar Milošević", license:"CC BY-SA 3.0", licenseUrl:"https://creativecommons.org/licenses/by-sa/3.0/" },
+  // 自備照片（own:true）：不需標示來源，也不會列入授權清單
+  kathakali:  { own:true },
+  samba:      { own:true },
+  reine:      { own:true },
+  baikal:     { file:"Baikal ice on sunset.jpg", author:"Sergey Pesterev", license:"CC BY-SA 4.0", licenseUrl:"https://creativecommons.org/licenses/by-sa/4.0/" },
+  machu:      { file:"Peru Machu Picchu Sunrise 2.jpg", author:"Allard Schmidt", license:"CC BY-SA 3.0", licenseUrl:"https://creativecommons.org/licenses/by-sa/3.0/" },
+  milford:    { file:"MilfordSound.jpg", author:"Wikikiwiman", license:"Public Domain", licenseUrl:"https://commons.wikimedia.org/wiki/Commons:Licensing#Public_domain" },
+};
+[...SCENES, ...DESTS].forEach(it=>{ if(USE_PHOTOS && it.photo && PHOTOS[it.photo]) it.img = "images/" + it.photo + ".jpg"; });
+
+const OTHER_CONSULTANT = "其他";
+const CONSULTANTS = ["曾玟娸","蔡孟谷","呂適仲","林芮杋","耿曼綸","高瑛婕","林梅瑄","胡詒靖","王秋萍","陳姸方","馬筠家","郭厚璋","徐維閔","張書元","張晉嘉",OTHER_CONSULTANT];
 
 const API_URL = "https://asia-east1-project-c196e615-65e3-44bb-ada.cloudfunctions.net/submitQuiz";
 
@@ -323,7 +363,8 @@ function startQuiz(){
 }
 
 function thumbStyle(item){
-  if(item.img) return `background-image:url('${item.img}')`;
+  // 照片載入失敗（或還沒上傳）時，底下的漸層色會當作備用底圖
+  if(item.img) return `background-image:url('${item.img}'),linear-gradient(135deg,${item.c[0]},${item.c[1]})`;
   return `background:linear-gradient(135deg,${item.c[0]},${item.c[1]})`;
 }
 
@@ -348,6 +389,17 @@ function buildDests(){
        <div class="optText"><b>${d.name}</b></div>
        <div class="tick">✓</div>
      </div>`).join("");
+}
+function onConsultantChange(){
+  const isOther = document.getElementById("consultant").value === OTHER_CONSULTANT;
+  const box = document.getElementById("consultantOther");
+  box.style.display = isOther ? "block" : "none";
+  if(!isOther) box.value = "";
+  checkSubmit();
+}
+function consultantName(){
+  const v = document.getElementById("consultant").value;
+  return v === OTHER_CONSULTANT ? document.getElementById("consultantOther").value.trim() : v;
 }
 function buildConsultants(){
   const sel = document.getElementById("consultant");
@@ -386,6 +438,7 @@ function formValid(){
   return document.getElementById("name").value.trim() !== ""
     && /^[0-9]{10}$/.test(document.getElementById("phone").value)
     && document.getElementById("consultant").value !== ""
+    && consultantName() !== ""
     && document.getElementById("consent").checked;
 }
 function checkSubmit(){
@@ -421,12 +474,14 @@ async function submitForm(){
   const btn = document.getElementById("submitBtn");
   const name = document.getElementById("name").value.trim();
   const consultant = document.getElementById("consultant").value;
+  const consultantOther = consultant === OTHER_CONSULTANT ? consultantName() : "";
 
   const payload = {
     submission_id: submissionId,
     name,
     phone: document.getElementById("phone").value,
     consultant,
+    consultantOther,
     continents: orderedSelection(CONTINENTS, selContinents, c=>c.label),
     scenes: orderedSelection(SCENES, selScenes, s=>s.text),
     destinations: orderedSelection(DESTS, selDests, d=>d.name),
@@ -450,7 +505,7 @@ async function submitForm(){
     try{ json = await res.json(); }catch(e){}
 
     if(res.ok && json && json.success){
-      renderTicket(name, consultant, payload.ticketDestination);
+      renderTicket(name, consultant === OTHER_CONSULTANT ? consultantOther : consultant, payload.ticketDestination);
       go("s-done");
       launchConfetti();
     } else {
@@ -482,6 +537,8 @@ function renderTicket(name, consultant, destName){
   hero.style.backgroundSize = "cover"; hero.style.backgroundPosition = "center";
   document.getElementById("tkEmoji").textContent = d.img ? "" : d.icon;
   document.getElementById("tkDest").textContent = d.name === OTHER ? "世界某處，等您決定" : d.name;
+  const ph = d.photo && PHOTOS[d.photo];
+  document.getElementById("tkCredit").textContent = (ph && !ph.own) ? `Photo: ${ph.author} / ${ph.license} · Wikimedia Commons` : "";
   document.getElementById("tkCode").textContent = d.code;
   document.getElementById("tkCity").textContent = d.city;
   document.getElementById("tkName").textContent = name;
@@ -563,6 +620,8 @@ function restart(){
   document.getElementById("name").value = "";
   document.getElementById("phone").value = "";
   document.getElementById("consultant").value = "";
+  document.getElementById("consultantOther").value = "";
+  document.getElementById("consultantOther").style.display = "none";
   document.getElementById("consent").checked = false;
   document.getElementById("q2Next").disabled = true;
   document.getElementById("q3Next").disabled = true;
@@ -571,7 +630,16 @@ function restart(){
   go("s-start");
 }
 
-buildContinents(); buildScenes(); buildDests(); buildConsultants();
+function buildCredits(){
+  const esc = t=>String(t).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  document.getElementById("creditList").innerHTML = Object.values(PHOTOS).filter(p=>!p.own).map(p=>{
+    const page = "https://commons.wikimedia.org/wiki/File:" + encodeURIComponent(p.file.replace(/ /g,"_"));
+    const title = p.file.replace(/\.[A-Za-z]+$/,"");
+    return `<li><a href="${page}" target="_blank" rel="noopener">${esc(title)}</a>，${esc(p.author)}，<a href="${p.licenseUrl}" target="_blank" rel="noopener">${esc(p.license)}</a>（Wikimedia Commons，已縮小尺寸）</li>`;
+  }).join("");
+}
+
+buildContinents(); buildScenes(); buildDests(); buildConsultants(); buildCredits();
 </script>
 </body>
 </html>
